@@ -1,0 +1,124 @@
+author: Chris Mumford
+description: Si470X radio tuner library
+version: 0.9
+
+platforms: [ cc3200, cc3220, esp32, esp8266, rs14100, stm32 ]
+
+sources:
+  - src/freq_table.c
+  - src/freq_table_group.c
+  - src/mgos_si470x.c
+  - src/rds_decode.c
+  - src/si470x_misc.c
+
+includes:
+  - include
+
+conds:
+  - when: mos.platform == "cc3200"
+    apply:
+      sources:
+        - src/cc32xx
+      config_schema:
+        - ["si470x", "o", {title: "Si470X settings"}]
+        - ["si470x.enable", "b", true, {title: "Enable the Si470X"}]
+        - ["si470x.region", "s", "USA", {title: "The broadcast region"}]
+        - ["si470x.advanced_ps", "b", true, {title: "Advanced RDS PS decoding"}]
+        - ["si470x.rst_gpio", "i", -1, {title: "Si470X reset GPIO pin (required)"}]
+        - ["si470x.gpio2_int_gpio", "i", -1, {title: "The GPIO pin connected to Si4703's GPIO2 pin (optional)"}]
+
+  - when: mos.platform == "cc3220"
+    apply:
+      sources:
+        - src/cc32xx
+      config_schema:
+        - ["si470x", "o", {title: "Si470X settings"}]
+        - ["si470x.enable", "b", true, {title: "Enable the Si470X"}]
+        - ["si470x.region", "s", "USA", {title: "The broadcast region"}]
+        - ["si470x.advanced_ps", "b", true, {title: "Advanced RDS PS decoding"}]
+        - ["si470x.rst_gpio", "i", -1, {title: "Si470X reset GPIO pin (required)"}]
+        - ["si470x.gpio2_int_gpio", "i", -1, {title: "The GPIO pin connected to Si4703's GPIO2 pin (optional)"}]
+
+  - when: mos.platform == "esp32"
+    apply:
+      sources:
+        - src/esp32
+      config_schema:
+        - ["si470x", "o", {title: "Si470X settings"}]
+        - ["si470x.enable", "b", true, {title: "Enable the Si470X"}]
+        - ["si470x.region", "s", "USA", {title: "The broadcast region"}]
+        - ["si470x.advanced_ps", "b", true, {title: "Advanced RDS PS decoding"}]
+        - ["si470x.rst_gpio", "i", -1, {title: "Si470X reset GPIO pin (required)"}]
+        - ["si470x.gpio2_int_gpio", "i", -1, {title: "The GPIO pin connected to Si4703's GPIO2 pin (optional)"}]
+        - ["si470x1.enable", "b", false, {title: "Enable the Si470X"}]
+        - ["si470x1.region", "s", "USA", {title: "The broadcast region"}]
+        - ["si470x1.advanced_ps", "b", true, {title: "Advanced RDS PS decoding"}]
+        - ["si470x1.rst_gpio", "i", -1, {title: "Si470X reset GPIO pin (required)"}]
+        - ["si470x1.gpio2_int_gpio", "i", -1, {title: "The GPIO pin connected to Si4703's GPIO2 pin (optional)"}]
+
+  - when: mos.platform == "esp8266"
+    apply:
+      sources:
+        - src/gpio
+      config_schema:
+        - ["si470x", "o", {title: "Si470X settings"}]
+        - ["si470x.enable", "b", true, {title: "Enable the Si470X"}]
+        - ["si470x.region", "s", "USA", {title: "The broadcast region"}]
+        - ["si470x.advanced_ps", "b", true, {title: "Advanced RDS PS decoding"}]
+        - ["si470x.rst_gpio", "i", -1, {title: "Si470X reset GPIO pin (required)"}]
+        - ["si470x.gpio2_int_gpio", "i", -1, {title: "The GPIO pin connected to Si4703's GPIO2 pin (optional)"}]
+        - ["si470x1.enable", "b", false, {title: "Enable the Si470X"}]
+        - ["si470x1.region", "s", "USA", {title: "The broadcast region"}]
+        - ["si470x1.advanced_ps", "b", true, {title: "Advanced RDS PS decoding"}]
+        - ["si470x1.rst_gpio", "i", -1, {title: "Si470X reset GPIO pin (required)"}]
+        - ["si470x1.gpio2_int_gpio", "i", -1, {title: "The GPIO pin connected to Si4703's GPIO2 pin (optional)"}]
+
+  - when: mos.platform == "rs14100"
+    apply:
+      sources:
+        - src/gpio
+      config_schema:
+        - ["si470x", "o", {title: "Si470X settings"}]
+        - ["si470x.enable", "b", true, {title: "Enable the Si470X"}]
+        - ["si470x.region", "s", "USA", {title: "The broadcast region"}]
+        - ["si470x.advanced_ps", "b", true, {title: "Advanced RDS PS decoding"}]
+        - ["si470x.rst_gpio", "i", -1, {title: "Si470X reset GPIO pin (required)"}]
+        - ["si470x.gpio2_int_gpio", "i", -1, {title: "The GPIO pin connected to Si4703's GPIO2 pin (optional)"}]
+        - ["si470x1.enable", "b", false, {title: "Enable the Si470X"}]
+        - ["si470x1.region", "s", "USA", {title: "The broadcast region"}]
+        - ["si470x1.advanced_ps", "b", true, {title: "Advanced RDS PS decoding"}]
+        - ["si470x1.rst_gpio", "i", -1, {title: "Si470X reset GPIO pin (required)"}]
+        - ["si470x1.gpio2_int_gpio", "i", -1, {title: "The GPIO pin connected to Si4703's GPIO2 pin (optional)"}]
+
+  - when: mos.platform == "stm32"
+    apply:
+      sources:
+        - src/gpio
+      config_schema:
+        - ["si470x", "o", {title: "Si470X settings"}]
+        - ["si470x.enable", "b", true, {title: "Enable the Si470X"}]
+        - ["si470x.region", "s", "USA", {title: "The broadcast region"}]
+        - ["si470x.advanced_ps", "b", true, {title: "Advanced RDS PS decoding"}]
+        - ["si470x.rst_gpio", "i", -1, {title: "Si470X reset GPIO pin (required)"}]
+        - ["si470x.gpio2_int_gpio", "i", -1, {title: "The GPIO pin connected to Si4703's GPIO2 pin (optional)"}]
+        - ["si470x1.enable", "b", false, {title: "Enable the Si470X"}]
+        - ["si470x1.region", "s", "USA", {title: "The broadcast region"}]
+        - ["si470x1.advanced_ps", "b", true, {title: "Advanced RDS PS decoding"}]
+        - ["si470x1.rst_gpio", "i", -1, {title: "Si470X reset GPIO pin (required)"}]
+        - ["si470x1.gpio2_int_gpio", "i", -1, {title: "The GPIO pin connected to Si4703's GPIO2 pin (optional)"}]
+
+tags:
+  - c
+  - hw
+  - si4703
+  - fm
+  - radio
+  - tuner
+
+manifest_version: 2018-06-20
+
+init_after:
+  - core
+
+init_before:
+  - i2c
