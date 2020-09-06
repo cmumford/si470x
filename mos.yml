@@ -1,5 +1,6 @@
 author: Chris Mumford
 description: Si470X radio tuner library
+type: lib
 version: 0.9
 
 platforms: [ cc3200, cc3220, esp32, esp8266, rs14100, stm32 ]
