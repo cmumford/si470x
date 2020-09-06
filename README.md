@@ -52,6 +52,8 @@ mgos_si470x_set_mute(tuner, false);
 mgos_si470x_set_soft_mute(tuner, false);
 ```
 
+Full example programs can be found at https://github.com/cmumford/si470x_examples.
+
 ### Linux/UNIX
 
 The Linux/UNIX uses a porting layer. This exists because there
