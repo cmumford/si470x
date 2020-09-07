@@ -58,7 +58,6 @@ static uint16_t SwapEndian(uint16_t val) {
  */
 static bool read_registers(struct si470x* device) {
   uint16_t registers[16];
-  mgos_msleep(200);
   if (!mgos_i2c_read(device->i2c, device->i2caddr, registers, sizeof(registers),
                      /*stop=*/true)) {
     LOG(LL_ERROR, ("Can't read device registers"));
@@ -83,7 +82,6 @@ static bool update_registers(const struct si470x* device) {
   for (size_t i = 0, idx = 0x02; idx <= 0x07; i++, idx++)
     registers[i] = SwapEndian(device->shadow_reg[idx]);
 
-  mgos_msleep(200);
   return mgos_i2c_write(device->i2c, device->i2caddr, registers,
                         sizeof(registers), /*stop=*/true);
 }
