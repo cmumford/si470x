@@ -58,6 +58,7 @@ static uint16_t SwapEndian(uint16_t val) {
  */
 static bool read_registers(struct si470x* device) {
   uint16_t registers[16];
+  mgos_msleep(200);
   if (!mgos_i2c_read(device->i2c, device->i2caddr, registers, sizeof(registers),
                      /*stop=*/true)) {
     LOG(LL_ERROR, ("Can't read device registers"));
@@ -82,6 +83,7 @@ static bool update_registers(const struct si470x* device) {
   for (size_t i = 0, idx = 0x02; idx <= 0x07; i++, idx++)
     registers[i] = SwapEndian(device->shadow_reg[idx]);
 
+  mgos_msleep(200);
   return mgos_i2c_write(device->i2c, device->i2caddr, registers,
                         sizeof(registers), /*stop=*/true);
 }
@@ -127,12 +129,14 @@ static void stc_interrupt_handler(int pin, void* arg) {
  *
  * Initialize the Si470X as per AN230 section 2.1.1.
  *
+ * This is using "busmode selection method 2" as described in the
+ * Si4702-03-C19.pdf
+ *
  * I2C must be disabled before calling this function.
  */
 static bool reset_device(const int si470x_rst_pin,
                          const int si470x_gpio2_int_pin,
-                         const int i2c_sda_pin,
-                         const int i2c_scl_pin) {
+                         const int i2c_sda_pin) {
   if (mgos_i2c_get_global()) {
     LOG(LL_ERROR, ("I2C must be disabled"));
     return false;
@@ -358,8 +362,7 @@ bool mgos_si470x_init(void) {
     }
 
     if (!reset_device(reset_pin, mgos_sys_config_get_si470x_gpio2_int_gpio(),
-                      mgos_sys_config_get_i2c_sda_gpio(),
-                      mgos_sys_config_get_i2c_scl_gpio())) {
+                      mgos_sys_config_get_i2c_sda_gpio())) {
       LOG(LL_ERROR, ("Unable to reset the connected Si470X."));
       return false;
     }
@@ -374,8 +377,7 @@ bool mgos_si470x_init(void) {
     }
 
     if (!reset_device(reset_pin, mgos_sys_config_get_si470x1_gpio2_int_gpio(),
-                      mgos_sys_config_get_i2c1_sda_gpio(),
-                      mgos_sys_config_get_i2c1_scl_gpio())) {
+                      mgos_sys_config_get_i2c1_sda_gpio())) {
       LOG(LL_ERROR, ("Unable to reset the connected Si470X #2."));
       return false;
     }
