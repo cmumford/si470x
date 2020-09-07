@@ -114,8 +114,9 @@ static void stc_interrupt_handler(int pin, void* arg) {
       {device->shadow_reg[RDSD], get_block_d_errors(device)}};
   mgos_rds_decoder_decode(device->decoder, &blocks);
 
-  if (device->rds_changed.func &&
-      !mgos_invoke_cb(device->rds_changed.func, device->rds_changed.arg,
+  if (!device->rds_changed.func)
+    return;
+  if (!mgos_invoke_cb(device->rds_changed.func, device->rds_changed.arg,
                       /*from_isr=*/false)) {
     LOG(LL_ERROR, ("Error invoking RDS callback."));
   }
