@@ -21,7 +21,7 @@ for more information.
 
 ### Mongoose OS
 
-First add the following to the YAML file:
+First add the following to the `mos.yml` file:
 
 ```yaml
 libs:
