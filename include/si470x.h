@@ -235,14 +235,14 @@ bool si470x_get_rds_data(struct si470x* device, struct rds_data* rds_data);
  *                        referenced by this pointer must remain valid as long
  *                        as the device is powered on.
  * @param num_test_blocks The number of blocks pointed to by test_blocks.
- * @param block_delay     The delay (in msec.) in between processing blocks.
+ * @param block_delay_ms  The delay (in msec.) in between processing blocks.
  *
  * @return True if successfully powered on, false if not.
  */
 bool si470x_power_on_test(struct si470x* device,
                           const struct rds_blocks* test_blocks,
                           uint16_t num_test_blocks,
-                          uint16_t block_delay);
+                          uint16_t block_delay_ms);
 
 /**
  * Are the test blocks still being emitted?

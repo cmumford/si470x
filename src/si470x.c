@@ -554,12 +554,12 @@ bool si470x_power_on(struct si470x* device) {
 bool si470x_power_on_test(struct si470x* device,
                           const struct rds_blocks* test_blocks,
                           uint16_t num_test_blocks,
-                          uint16_t block_delay) {
+                          uint16_t block_delay_ms) {
   device->test_blocks = test_blocks;
   device->num_test_blocks = num_test_blocks;
   device->test_block_idx = 0;
   device->run_test_thread = true;
-  device->block_delay_ms = block_delay;
+  device->block_delay_ms = block_delay_ms;
 
   bool is_on = si470x_power_on(device);
   if (!is_on)
