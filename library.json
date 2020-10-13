@@ -1,0 +1,36 @@
+{
+    "authors": [
+        {
+            "email": "cmumford@cmumford.com",
+            "name": "Chris Mumford",
+            "url": "https://github.com/cmumford"
+        }
+    ],
+    "build": {
+        "srcFilter": [
+            "+<*.c>",
+            "+<*.h>",
+            "-<mgos_*.c>"
+        ]
+    },
+    "dependencies":
+    [
+        {
+            "owner": "cmumford",
+            "name": "rds",
+            "version": "*"
+        }
+    ],
+    "description": "A library for controlling a Si470X radio chip",
+    "frameworks": "*",
+    "homepage": "https://github.com/cmumford/si470x",
+    "keywords": "radio, FM, Si4703",
+    "license": "Apache2",
+    "name": "si470x",
+    "platforms": "*",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/cmumford/si470x"
+    },
+    "version": "0.8.0"
+}
