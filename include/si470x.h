@@ -56,12 +56,10 @@ struct port;
  * finished delete the returned value using si470x_delete.
  *
  * @param config  Configuration parameters.
- * @param port    Platform porting object.
  *
  * Returns opaque handle (NULL if an error occurred).
  */
-struct si470x* si470x_create(const struct si470x_config* config,
-                             const struct port* port);
+struct si470x* si470x_create(const struct si470x_config* config);
 
 /**
  * Register a function to be called with new RDS data has been decoded.

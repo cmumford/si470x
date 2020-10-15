@@ -171,14 +171,14 @@ struct si470x {
     void* arg;    ///< argument to pass to rds_changed_cb.
   } rds_changed;  ///< Function to call with RDS changes.
 
+  struct port* port;  ///< The porting layer.
+
 #if defined(MGOS)
   struct mgos_i2c* i2c;  ///< I2C instance for communicating with Si470X.
 #else
   int reset_pin;          ///< The GPIO pin connected to the Si470X RST pin.
   int sdio_pin;           ///< The serial data in/data out pin (I2C).
   int sclk_pin;           ///< The serial clock pin (I2C).
-  struct port port;       ///< The porting layer.
-  int i2c_fd;             ///< The I2C file descriptor.
   pthread_mutex_t mutex;  ///< Synchronize access to this data structure.
   const struct rds_blocks* test_blocks;  ///< The test blocks to process.
   uint16_t num_test_blocks;              ///< The number of test blocks.

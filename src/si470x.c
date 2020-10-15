@@ -57,7 +57,7 @@ static bool read_registers(struct si470x* device) {
     return true;
 
   uint16_t registers[16];
-  if (!device->port.i2c_read(registers, sizeof(registers))) {
+  if (!port_i2c_read(device->port, registers, sizeof(registers))) {
     LOG(LL_ERROR, ("Can't read device registers"));
     return false;
   }
@@ -83,7 +83,7 @@ static bool update_registers(const struct si470x* device) {
   for (size_t i = 0, idx = 0x02; idx <= 0x07; i++, idx++)
     registers[i] = SwapEndian(device->shadow_reg[idx]);
 
-  return device->port.i2c_write(registers, sizeof(registers));
+  return port_i2c_write(device->port, registers, sizeof(registers));
 }
 
 /**
@@ -132,7 +132,7 @@ static void* rds_test_data_func(void* arg) {
   struct si470x* device = (struct si470x*)arg;
 
   while (device->run_test_thread) {
-    device->port.delay(device->block_delay_ms);
+    port_delay(device->port, device->block_delay_ms);
 
     pthread_mutex_lock(&device->mutex);
     rds_decoder_decode(device->decoder,
@@ -159,33 +159,33 @@ static void* rds_test_data_func(void* arg) {
  * I2C must be disabled before calling this function.
  */
 static bool reset_device(struct si470x* device) {
-  if (device->i2c_fd) {
+  if (port_i2c_enabled(device->port)) {
     LOG(LL_ERROR, ("I2C must be disabled"));
     return false;
   }
-  if (!device->port.enable_gpio())
+  if (!port_enable_gpio(device->port))
     return false;
-  device->port.set_pin_mode(device->reset_pin, PIN_MODE_OUTPUT);
-  device->port.set_pin_mode(device->sdio_pin, PIN_MODE_OUTPUT);
+  port_set_pin_mode(device->port, device->reset_pin, PIN_MODE_OUTPUT);
+  port_set_pin_mode(device->port, device->sdio_pin, PIN_MODE_OUTPUT);
   if (device->gpio2_int_pin != -1)
-    device->port.set_pin_mode(device->gpio2_int_pin, PIN_MODE_OUTPUT);
+    port_set_pin_mode(device->port, device->gpio2_int_pin, PIN_MODE_OUTPUT);
 
   // Low SDIO = 2-wire interface.
-  device->port.digital_write(device->sdio_pin, TTL_LOW);
+  port_digital_write(device->port, device->sdio_pin, TTL_LOW);
   if (device->gpio2_int_pin != -1) {
     // goes low on interrupt.
-    device->port.digital_write(device->gpio2_int_pin, TTL_HIGH);
+    port_digital_write(device->port, device->gpio2_int_pin, TTL_HIGH);
   }
   // Put Si470X into reset.
-  device->port.digital_write(device->reset_pin, TTL_LOW);
+  port_digital_write(device->port, device->reset_pin, TTL_LOW);
 
-  device->port.delay(1);  // Allow pin to settle.
+  port_delay(device->port, 1);  // Allow pin to settle.
 
   // Bring Si470X out of reset with SDIO set to low and SEN pulled high
   // (if used) with on-board resistor.
-  device->port.digital_write(device->reset_pin, TTL_HIGH);
+  port_digital_write(device->port, device->reset_pin, TTL_HIGH);
 
-  device->port.delay(1);  // Allow Si470X to come out of reset.
+  port_delay(device->port, 1);  // Allow Si470X to come out of reset.
 
   LOG(LL_INFO, ("Reset Si470X: SDA/SCL/RST/STC %d/%d/%d/%d.", device->sdio_pin,
                 device->sclk_pin, device->reset_pin, device->gpio2_int_pin));
@@ -195,10 +195,10 @@ static bool reset_device(struct si470x* device) {
 static bool set_stc_interrupt_handler(struct si470x* device) {
   LOG(LL_INFO,
       ("Enabling GPIO2 interrupt handler on GPIO %d", device->gpio2_int_pin));
-  device->port.set_pin_mode(device->gpio2_int_pin, PIN_MODE_INPUT);
+  port_set_pin_mode(device->port, device->gpio2_int_pin, PIN_MODE_INPUT);
 
-  if (device->port.set_interrupt_handler(
-          device->gpio2_int_pin, EDGE_TYPE_FALLING, &stc_interrupt_handler)) {
+  if (port_set_interrupt_handler(device->port, device->gpio2_int_pin,
+                                 EDGE_TYPE_FALLING, &stc_interrupt_handler)) {
     LOG(LL_ERROR,
         ("Error enabling interrupt handler on GPIO %d", device->gpio2_int_pin));
     return false;
@@ -209,25 +209,7 @@ static bool set_stc_interrupt_handler(struct si470x* device) {
 static bool enable_i2c(struct si470x* device) {
   if (device->test_blocks)
     return true;
-
-  const char filename[] = "/dev/i2c-1";
-  // Open I2C slave device.
-  if ((device->i2c_fd = open(filename, O_RDWR)) < 0) {
-    perror(filename);
-    return false;
-  }
-
-  // Set device address.
-  if (!device->port.set_i2c_addr(device->i2c_fd, device->i2caddr)) {
-    perror("Failed to acquire bus access and/or talk to slave");
-    return false;
-  }
-
-  if (!device->port.enable_i2c_packet_error_checking(device->i2c_fd)) {
-    perror("Failed to enable PEC");
-    return false;
-  }
-  return true;
+  return port_enable_i2c(device->port, device->i2caddr);
 }
 
 /**
@@ -245,11 +227,11 @@ static bool wait_for_stc_bit_set(struct si470x* device) {
     for (iter = 0; iter < num_stc_iters; iter++) {
       if (device->shadow_reg[STATUSRSSI] & STC)
         break;
-      device->port.delay(stc_check_interval_ms);
+      port_delay(device->port, stc_check_interval_ms);
     }
   } else {
     for (iter = 0; iter < num_stc_iters; iter++) {
-      device->port.delay(stc_check_interval_ms);
+      port_delay(device->port, stc_check_interval_ms);
       if (!read_registers(device))
         return false;
       if (device->shadow_reg[STATUSRSSI] & STC)
@@ -270,7 +252,7 @@ static bool wait_for_stc_bit_clear(struct si470x* device) {
   const size_t num_stc_iters = device->max_seek_tune_ms / stc_check_interval_ms;
 
   for (size_t iter = 0; iter < num_stc_iters; iter++) {
-    device->port.delay(stc_check_interval_ms);
+    port_delay(device->port, stc_check_interval_ms);
     if (!read_registers(device))
       return false;
     if (!(device->shadow_reg[STATUSRSSI] & STC))
@@ -348,7 +330,7 @@ static bool min_power_on(struct si470x* device) {
   }
 
   // Wait for crystal to power up. Minimum 500 ms.
-  device->port.delay(550);
+  port_delay(device->port, 550);
 
   // Disable mute and set enable bit. memset above clears DISABLE bit.
   device->shadow_reg[POWERCFG] = DMUTE | DSMUTE | ENABLE;
@@ -358,7 +340,7 @@ static bool min_power_on(struct si470x* device) {
   }
 
   // Wait for device powerup. This is from the Si4703 datasheet.
-  device->port.delay(110);
+  port_delay(device->port, 110);
 
   return true;
 }
@@ -401,7 +383,7 @@ bool power_off(struct si470x* device) {
 
   if (device->gpio2_int_pin != -1) {
     // Set pin to low to reduce power consumption
-    device->port.digital_write(device->gpio2_int_pin, TTL_LOW);
+    port_digital_write(device->port, device->gpio2_int_pin, TTL_LOW);
   }
 
   CLEAR_BITS(device->shadow_reg[POWERCFG], DMUTE | ENABLE);
@@ -415,15 +397,14 @@ bool power_off(struct si470x* device) {
 /*vvvvvvvvvv PUBLIC FUNCTIONS *vvvvvvvvv*/
 /****************************************/
 
-struct si470x* si470x_create(const struct si470x_config* config,
-                             const struct port* port) {
+struct si470x* si470x_create(const struct si470x_config* config) {
   struct si470x* device = (struct si470x*)calloc(1, sizeof(struct si470x));
   if (device == NULL) {
     LOG(LL_ERROR, ("Could not allocate si470x structure."));
     return NULL;
   }
 
-  device->port = *port;
+  device->port = config->port;
   device->reset_pin = config->reset_pin;
   device->sdio_pin = config->sdio_pin;
   device->sclk_pin = config->sclk_pin;
@@ -535,7 +516,8 @@ bool si470x_power_on(struct si470x* device) {
     return false;
   }
 
-  device->port.delay(110);  // Max powerup time (ms), from datasheet page 13.
+  port_delay(device->port,
+             110);  // Max powerup time (ms), from datasheet page 13.
 
   // Once device is fully on, enable interrupt handler.
   if ((get_rds_interrupts_enabled(device) || use_tuning_interrupts) &&

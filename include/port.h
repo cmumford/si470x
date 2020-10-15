@@ -43,22 +43,100 @@ enum edge_type {
 
 typedef void (*InterruptHandler)(void);
 
+struct port;
+
 /**
- * Pointers to functions which implement the port for the current platform.
+ * Does this port support GPIO?
  *
- * **All** Functions must be implemented.
+ * @param port The port object.
  */
-struct port {
-  void (*delay)(uint16_t msec);
-  bool (*enable_gpio)();
-  void (*set_pin_mode)(uint16_t pin, enum pin_mode);
-  void (*digital_write)(uint16_t pin, enum ttl_level);
-  bool (*set_interrupt_handler)(uint16_t pin, enum edge_type, InterruptHandler);
-  bool (*set_i2c_addr)(int i2c_fd, uint16_t addr);
-  bool (*enable_i2c_packet_error_checking)(int i2c_fd);
-  bool (*i2c_write)(const void* data, size_t len);
-  bool (*i2c_read)(void* data, size_t len);
-};
+bool port_supports_gpio(struct port* port);
+
+/**
+ * Does this port support I2C?
+ *
+ * @param port The port object.
+ */
+bool port_supports_i2c(struct port* port);
+
+/**
+ * Delay (sleep) the calling thread a specified amount of time.
+ *
+ * @param port The port object.
+ * @param msec The number of milliseconds to delay.
+ */
+void port_delay(struct port* port, uint16_t msec);
+
+/**
+ * Enable GPIO for this port.
+ *
+ * @param port The port object.
+ */
+bool port_enable_gpio(struct port* port);
+
+/**
+ * Set the given pin mode.
+ *
+ * @param port The port object.
+ * @param pin The GPIO pin.
+ * @param mode The pin mode.
+ */
+void port_set_pin_mode(struct port* port, uint16_t pin, enum pin_mode mode);
+
+/**
+ * Set the specified pin's TTL level.
+ *
+ * @param port  The port object.
+ * @param pin   The pin to set.
+ * @param level The port object.
+ */
+void port_digital_write(struct port* port, uint16_t pin, enum ttl_level level);
+
+/**
+ * Set the interrupt handler for the specified pin
+ *
+ * @param port The port object.
+ * @param pin The pin for which the handler will be called.
+ * @param edge_type When to call the handler.
+ * @param handler The ISR handler function pointer.
+ */
+bool port_set_interrupt_handler(struct port* port,
+                                uint16_t pin,
+                                enum edge_type edge_type,
+                                InterruptHandler handler);
+
+/**
+ * Enable I2C for the given port.
+ *
+ * @param port The port object.
+ * @param slave_addr The address of the slave.
+ */
+bool port_enable_i2c(struct port* port, uint16_t slave_addr);
+
+/**
+ * Is I2C enabled for the given port?
+ *
+ * @param port The port object.
+ */
+bool port_i2c_enabled(struct port* port);
+
+/**
+ * Write data to the I2C slave.
+ *
+ * @param port The port object.
+ * @param data Pointer to the data to write.
+ * @param len The number of bytes to write.
+ */
+bool port_i2c_write(struct port* port, const void* data, size_t len);
+
+/**
+ * Read data from the I2C slave.
+ *
+ * @param port The port object.
+ * @param data Pointer to the data to read to.
+ * @param len The number of bytes to read.
+ */
+bool port_i2c_read(struct port* port, void* data, size_t len);
 
 #ifdef __cplusplus
 }

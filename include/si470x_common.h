@@ -26,6 +26,7 @@
 #include <stdint.h>
 
 #include <rds_decoder.h>
+#include "port.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -86,7 +87,8 @@ struct si470x_config {
   int reset_pin;  ///< The pin used to reset the tuner.
   int sdio_pin;   ///< The I2C SDA pin.
   int sclk_pin;   ///< The I2C SCK pin.
-#endif  // !defined(MGOS)
+#endif                // !defined(MGOS)
+  struct port* port;  ///< The platform porting layer.
 };
 
 /**
