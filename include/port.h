@@ -23,6 +23,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -55,6 +56,8 @@ struct port {
   bool (*set_interrupt_handler)(uint16_t pin, enum edge_type, InterruptHandler);
   bool (*set_i2c_addr)(int i2c_fd, uint16_t addr);
   bool (*enable_i2c_packet_error_checking)(int i2c_fd);
+  bool (*i2c_write)(const void* data, size_t len);
+  bool (*i2c_read)(void* data, size_t len);
 };
 
 #ifdef __cplusplus

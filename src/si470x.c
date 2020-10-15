@@ -57,7 +57,7 @@ static bool read_registers(struct si470x* device) {
     return true;
 
   uint16_t registers[16];
-  if (read(device->i2c_fd, registers, sizeof(registers)) != sizeof(registers)) {
+  if (!device->port.i2c_read(registers, sizeof(registers))) {
     LOG(LL_ERROR, ("Can't read device registers"));
     return false;
   }
@@ -83,8 +83,7 @@ static bool update_registers(const struct si470x* device) {
   for (size_t i = 0, idx = 0x02; idx <= 0x07; i++, idx++)
     registers[i] = SwapEndian(device->shadow_reg[idx]);
 
-  return write(device->i2c_fd, registers, sizeof(registers)) ==
-         sizeof(registers);
+  return device->port.i2c_write(registers, sizeof(registers));
 }
 
 /**
