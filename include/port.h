@@ -45,6 +45,20 @@ typedef void (*InterruptHandler)(void);
 
 struct port;
 
+
+/**
+ * Create a port.
+ *
+ * @param noop Set to true for a no-op port, where all calls do nothing
+ *             and never fail. This is for testing.
+ */
+struct port* port_create(bool noop);
+
+/**
+ * Delete the port.
+ */
+void port_delete(struct port* port);
+
 /**
  * Does this port support GPIO?
  *

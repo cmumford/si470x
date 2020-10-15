@@ -26,6 +26,9 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <stddef.h>
+#include <string.h>
 
 #include <mgos.h>
 #include <mgos_i2c.h>
@@ -330,12 +333,14 @@ static void set_de_emphasis(struct si470x* device) {
 }
 
 enum si470x_region parse_region(const char* region) {
+#if 0
   if (!stricmp(region, "europe"))
     return REGION_EUROPE;
   if (!stricmp(region, "australia"))
     return REGION_AUSTRALIA;
   if (!stricmp(region, "japan"))
     return REGION_JAPAN;
+#endif
   return REGION_US;
 }
 
@@ -398,6 +403,7 @@ struct si470x* mgos_si470x_get_device(int i2c_bus_no) {
             .advanced_ps_decoding = mgos_sys_config_get_si470x_advanced_ps(),
             .gpio2_int_pin = mgos_sys_config_get_si470x_gpio2_int_gpio(),
             .i2c_bus_no = i2c_bus_no,
+            .port = port,
         };
         s_devices[i2c_bus_no] = mgos_si470x_create(&config);
       } break;
@@ -408,6 +414,7 @@ struct si470x* mgos_si470x_get_device(int i2c_bus_no) {
             .advanced_ps_decoding = mgos_sys_config_get_si470x1_advanced_ps(),
             .gpio2_int_pin = mgos_sys_config_get_si470x1_gpio2_int_gpio(),
             .i2c_bus_no = i2c_bus_no,
+            .port = port,
         };
         s_devices[i2c_bus_no] = mgos_si470x_create(&config);
       } break;

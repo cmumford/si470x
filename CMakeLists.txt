@@ -24,6 +24,30 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_EXTENSIONS OFF)
 endif(NOT CMAKE_CXX_STANDARD)
 
+include(CheckIncludeFile)
+check_include_file("wiringPi.h" HAVE_WIRING_PI_H)
+check_include_file("linux/i2c-dev.h" HAVE_I2C_DEV_H)
+
+include(CheckLibraryExists)
+check_library_exists(wiringPi wiringPiSetupGpio "" HAVE_WIRINGPI)
+
+include(CheckCXXSymbolExists)
+check_cxx_symbol_exists(usleep "unistd.h" HAVE_USLEEP)
+check_cxx_symbol_exists(nanosleep "time.h" HAVE_NANOSLEEP)
+
+if (HAVE_WIRING_PI_H)
+  add_definitions(-DHAVE_WIRING_PI)
+endif (HAVE_WIRING_PI_H)
+if (HAVE_I2C_DEV_H)
+  add_definitions(-DHAVE_I2C_DEV)
+endif (HAVE_I2C_DEV_H)
+if (HAVE_USLEEP)
+  add_definitions(-DHAVE_USLEEP)
+endif (HAVE_USLEEP)
+if (HAVE_NANOSLEEP)
+  add_definitions(-DHAVE_NANOSLEEP)
+endif (HAVE_NANOSLEEP)
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
@@ -33,6 +57,8 @@ target_sources(si470x
   PRIVATE
     "include/si470x.h"
     "include/si470x_common.h"
+    "src/port_unix.c"
+    "src/port_unix.h"
     "src/si470x.c"
     "src/si470x_misc.c"
     "src/si470x_misc.h"
