@@ -10,7 +10,9 @@
         "srcFilter": [
             "+<*.c>",
             "+<*.h>",
-            "-<mgos_*.c>"
+            "-<mgos_*.c>",
+            "-<port_mgos.c>",
+            "-<port_unix.c>"
         ]
     },
     "dependencies":

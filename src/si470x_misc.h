@@ -185,14 +185,14 @@ struct si470x {
   uint16_t test_block_idx;               ///< The next RDS block to process.
   pthread_t sdr_test_thread;             ///< The thread object.
   bool run_test_thread;                  ///< Keep running the test thread?
-#endif                                   // defined(SUPPORT_TEST_DATA)
+  uint16_t block_delay_ms;               ///< Delay between processing blocks.
+#endif
 
 #if !defined(MGOS)
-  int reset_pin;            ///< The GPIO pin connected to the Si470X RST pin.
-  int sdio_pin;             ///< The serial data in/data out pin (I2C).
-  int sclk_pin;             ///< The serial clock pin (I2C).
-  pthread_mutex_t mutex;    ///< Synchronize access to this data structure.
-  uint16_t block_delay_ms;  ///< The delay (in msec.) between processing blocks.
+  int reset_pin;          ///< The GPIO pin connected to the Si470X RST pin.
+  int sdio_pin;           ///< The serial data in/data out pin (I2C).
+  int sclk_pin;           ///< The serial clock pin (I2C).
+  pthread_mutex_t mutex;  ///< Synchronize access to this data structure.
 #endif
 };
 

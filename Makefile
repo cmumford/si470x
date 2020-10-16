@@ -2,17 +2,9 @@
 CLANG_FORMAT=clang-format
 
 SOURCE_FILES = \
-		include/mgos_si470x.h \
-		include/port.h \
-		include/si470x.h \
-		include/si470x_common.h \
+		include/*.h \
 		mjs_fs/api_si470x.js \
-		src/mgos_si470x.c \
-		src/port_mgos.c \
-		src/port_unix.c \
-		src/si470x.c \
-		src/si470x_misc.c \
-		src/si470x_misc.h
+		src/*.[ch]
 
 .PHONY: format
 format:
