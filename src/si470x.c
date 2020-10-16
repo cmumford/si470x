@@ -112,11 +112,11 @@ static bool update_registers(const struct si470x* device) {
  * NOTE: On some platforms this may be called on a different thread.
  */
 static void stc_interrupt_handler(void* user_data) {
-  struct si470x* device =
 #if defined(HAVE_WIRING_PI)
-      g_device;
+  struct si470x* device = g_device;
+  UNUSED(user_data);
 #else
-      (struct si470x*)user_data;
+  struct si470x* device = (struct si470x*)user_data;
 #endif
 
   bool dirty = false;

@@ -45,6 +45,9 @@ struct port {
 
 #if defined(HAVE_WIRING_PI)
 
+InterruptHandler g_interrupt_handler;
+void* g_isr_user_data;
+
 static int xlate_pin_mode(enum pin_mode mode) {
   switch (mode) {
     case PIN_MODE_INPUT:
@@ -73,8 +76,6 @@ static int xlate_edge_type(enum edge_type type) {
       return INT_EDGE_RISING;
     case EDGE_TYPE_BOTH:
       return INT_EDGE_BOTH;
-    case EDGE_TYPE_SETUP:
-      return INT_EDGE_SETUP;
   }
   return INT_EDGE_FALLING;
 }
@@ -198,6 +199,12 @@ bool port_i2c_enabled(struct port* port) {
   return port->i2c_fd >= 0;
 }
 
+#if defined(HAVE_WIRING_PI)
+static void local_interrupt_handler(void) {
+  g_interrupt_handler(g_isr_user_data);
+}
+#endif
+
 bool port_set_interrupt_handler(struct port* port,
                                 uint16_t pin,
                                 enum edge_type edge_type,
@@ -206,7 +213,11 @@ bool port_set_interrupt_handler(struct port* port,
   UNUSED(port);
   UNUSED(user_data);
 #if defined(HAVE_WIRING_PI)
-  return wiringPiISR(pin, xlate_edge_type(edge_type), handler);
+  if (g_interrupt_handler)
+    return false;
+  g_interrupt_handler = handler;
+  g_isr_user_data = user_data;
+  return wiringPiISR(pin, xlate_edge_type(edge_type), &local_interrupt_handler);
 #else
   UNUSED(pin);
   UNUSED(edge_type);
