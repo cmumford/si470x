@@ -34,17 +34,12 @@ enum pin_mode { PIN_MODE_INPUT, PIN_MODE_OUTPUT };
 
 enum ttl_level { TTL_HIGH, TTL_LOW };
 
-enum edge_type {
-  EDGE_TYPE_FALLING,
-  EDGE_TYPE_RISING,
-  EDGE_TYPE_BOTH,
-  EDGE_TYPE_SETUP
-};
+enum edge_type { EDGE_TYPE_FALLING, EDGE_TYPE_RISING, EDGE_TYPE_BOTH };
 
-typedef void (*InterruptHandler)(void);
+// NOTE: On Raspberry Pi user_data is always NULL.
+typedef void (*InterruptHandler)(void* user_data);
 
 struct port;
-
 
 /**
  * Create a port.
@@ -117,15 +112,17 @@ void port_digital_write(struct port* port, uint16_t pin, enum ttl_level level);
 bool port_set_interrupt_handler(struct port* port,
                                 uint16_t pin,
                                 enum edge_type edge_type,
-                                InterruptHandler handler);
+                                InterruptHandler handler,
+                                void* handler_data);
 
 /**
  * Enable I2C for the given port.
  *
  * @param port The port object.
+ * @param i2c_bus The I2C bus number.
  * @param slave_addr The address of the slave.
  */
-bool port_enable_i2c(struct port* port, uint16_t slave_addr);
+bool port_enable_i2c(struct port* port, uint8_t i2c_bus, uint16_t slave_addr);
 
 /**
  * Is I2C enabled for the given port?

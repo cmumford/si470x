@@ -39,13 +39,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define LOG(level, msg) (void)0
-
-#define LL_ERROR 1
-#define LL_WARN 2
-#define LL_INFO 3
-#define LL_DEBUG 4
-
 struct port;
 
 /**

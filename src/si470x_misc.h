@@ -141,14 +141,20 @@
 
 // clang-format on
 
+#if defined(RDS_DEV) && defined(HAVE_WIRING_PI)
+#define SUPPORT_TEST_DATA
+#endif
+
 struct si470x {
   // Instance values.
   uint16_t shadow_reg[16];      ///< A copy of the device registers.
+  int i2c_bus;                  ///< I2C bus to which the Si470X is connected.
   uint16_t i2caddr;             ///< The Si470X I2C tuner address.
   uint16_t max_seek_tune_ms;    ///< Maximum Seek/Tune time (milliseconds).
   enum si470x_region region;    ///< The broadcast region.
   struct rds_data rds;          ///< Current RDS data.
   struct rds_decoder* decoder;  ///< The RDS decoder.
+
   /**
    * The GPIO pin (on the Controller/RPi) connected to the Si470Xs GPIO2 pin.
    *
@@ -173,22 +179,30 @@ struct si470x {
 
   struct port* port;  ///< The porting layer.
 
-#if defined(MGOS)
-  struct mgos_i2c* i2c;  ///< I2C instance for communicating with Si470X.
-#else
-  int reset_pin;          ///< The GPIO pin connected to the Si470X RST pin.
-  int sdio_pin;           ///< The serial data in/data out pin (I2C).
-  int sclk_pin;           ///< The serial clock pin (I2C).
-  pthread_mutex_t mutex;  ///< Synchronize access to this data structure.
+#if defined(SUPPORT_TEST_DATA)
   const struct rds_blocks* test_blocks;  ///< The test blocks to process.
   uint16_t num_test_blocks;              ///< The number of test blocks.
   uint16_t test_block_idx;               ///< The next RDS block to process.
   pthread_t sdr_test_thread;             ///< The thread object.
   bool run_test_thread;                  ///< Keep running the test thread?
-  uint16_t
-      block_delay_ms;  ///< The delay (in msec.) in between processing blocks.
+#endif                                   // defined(SUPPORT_TEST_DATA)
+
+#if !defined(MGOS)
+  int reset_pin;            ///< The GPIO pin connected to the Si470X RST pin.
+  int sdio_pin;             ///< The serial data in/data out pin (I2C).
+  int sclk_pin;             ///< The serial clock pin (I2C).
+  pthread_mutex_t mutex;    ///< Synchronize access to this data structure.
+  uint16_t block_delay_ms;  ///< The delay (in msec.) between processing blocks.
 #endif
 };
+
+/**
+ * Reset the Si470X device.
+ */
+bool reset_device(struct port* port,
+                  const int si470x_rst_pin,
+                  const int si470x_gpio2_int_pin,
+                  const int i2c_sda_pin);
 
 /**
  * Return the device type for given device.

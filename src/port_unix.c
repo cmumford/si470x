@@ -12,7 +12,7 @@
  * Abstraction implementation for Testing.
  */
 
-#include "port_unix.h"
+#include "port.h"
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -37,8 +37,9 @@
   } while (0)
 
 struct port {
-  int noop;
+  bool noop;
   int i2c_fd;
+  int i2c_bus;
   int i2c_slave_addr;
 };
 
@@ -161,7 +162,8 @@ void port_digital_write(struct port* port, uint16_t pin, enum ttl_level level) {
 #endif
 }
 
-bool port_enable_i2c(struct port* port, uint16_t slave_addr) {
+bool port_enable_i2c(struct port* port, uint8_t i2c_bus, uint16_t slave_addr) {
+  port->i2c_bus = i2c_bus;
   port->i2c_slave_addr = slave_addr;
 #if defined(HAVE_I2C_DEV)
   const char filename[] = "/dev/i2c-1";
@@ -199,8 +201,10 @@ bool port_i2c_enabled(struct port* port) {
 bool port_set_interrupt_handler(struct port* port,
                                 uint16_t pin,
                                 enum edge_type edge_type,
-                                InterruptHandler handler) {
+                                InterruptHandler handler,
+                                void* user_data) {
   UNUSED(port);
+  UNUSED(user_data);
 #if defined(HAVE_WIRING_PI)
   return wiringPiISR(pin, xlate_edge_type(edge_type), handler);
 #else
@@ -214,11 +218,17 @@ bool port_set_interrupt_handler(struct port* port,
 bool port_i2c_write(struct port* port, const void* data, size_t len) {
   if (port->i2c_fd < 0)
     return false;
-  return (size_t)write(port->i2c_fd, data, len) == len;
+  int bytes_written = write(port->i2c_fd, data, len);
+  if (bytes_written < 0)
+    return false;
+  return bytes_written == (int)len;
 }
 
 bool port_i2c_read(struct port* port, void* data, size_t len) {
   if (port->i2c_fd < 0)
     return false;
-  return (size_t)read(port->i2c_fd, data, len) == len;
+  int bytes_read = read(port->i2c_fd, data, len);
+  if (bytes_read < 0)
+    return false;
+  return bytes_read == (int)len;
 }

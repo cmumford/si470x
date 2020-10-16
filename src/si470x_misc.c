@@ -18,6 +18,46 @@
 
 #include <stdint.h>
 
+/**
+ * Reset the Si470X device.
+ *
+ * Initialize the Si470X as per AN230 section 2.1.1.
+ *
+ * I2C must be disabled before calling this function.
+ */
+bool reset_device(struct port* port,
+                  const int si470x_rst_pin,
+                  const int si470x_gpio2_int_pin,
+                  const int i2c_sda_pin) {
+  if (port_i2c_enabled(port)) {
+    return false;
+  }
+  if (!port_enable_gpio(port))
+    return false;
+  port_set_pin_mode(port, si470x_rst_pin, PIN_MODE_OUTPUT);
+  port_set_pin_mode(port, i2c_sda_pin, PIN_MODE_OUTPUT);
+  if (si470x_gpio2_int_pin != -1)
+    port_set_pin_mode(port, si470x_gpio2_int_pin, PIN_MODE_OUTPUT);
+
+  // Low SDIO = 2-wire interface.
+  port_digital_write(port, i2c_sda_pin, TTL_LOW);
+  if (si470x_gpio2_int_pin != -1) {
+    // goes low on interrupt.
+    port_digital_write(port, si470x_gpio2_int_pin, TTL_HIGH);
+  }
+  // Put Si470X into reset.
+  port_digital_write(port, si470x_rst_pin, TTL_LOW);
+
+  port_delay(port, 1);  // Allow pin to settle.
+
+  // Bring Si470X out of reset with SDIO set to low and SEN pulled high
+  // (if used) with on-board resistor.
+  port_digital_write(port, si470x_rst_pin, TTL_HIGH);
+
+  port_delay(port, 1);  // Allow Si470X to come out of reset.
+  return true;
+}
+
 static uint32_t get_channel_space_hz(const struct si470x* device) {
   // See AN230 sect. 3.4.2
   switch ((device->shadow_reg[SYSCONFIG2] & CHAN_SPACE_MASK) >> 4) {

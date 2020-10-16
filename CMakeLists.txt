@@ -58,7 +58,6 @@ target_sources(si470x
     "include/si470x.h"
     "include/si470x_common.h"
     "src/port_unix.c"
-    "src/port_unix.h"
     "src/si470x.c"
     "src/si470x_misc.c"
     "src/si470x_misc.h"

@@ -77,17 +77,19 @@ struct si470x_config {
    * Set to -1 not use interrupts.
    */
   int gpio2_int_pin;
+  int i2c_bus;  ///< The I2C bus number on which the Si470X is connected.
 
-#if defined(MGOS)
-  int i2c_bus_no;  ///< The I2C bus on which the Si470X is connected.
-#else
+#if !defined(MGOS)
+
   // These pin numbers are not GPIO - they are wiringPi values.
   // See http://wiringpi.com/pins/
 
   int reset_pin;  ///< The pin used to reset the tuner.
   int sdio_pin;   ///< The I2C SDA pin.
   int sclk_pin;   ///< The I2C SCK pin.
-#endif                // !defined(MGOS)
+
+#endif  // !defined(MGOS)
+
   struct port* port;  ///< The platform porting layer.
 };
 

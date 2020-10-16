@@ -8,7 +8,9 @@ platforms: [ cc3200, cc3220, esp32, esp8266, rs14100, stm32 ]
 sources:
   - src/freq_table.c
   - src/freq_table_group.c
+  - src/si470x.c
   - src/mgos_si470x.c
+  - src/port_mgos.c
   - src/rds_decode.c
   - src/si470x_misc.c
 
