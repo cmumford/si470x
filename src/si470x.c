@@ -661,7 +661,7 @@ bool si470x_set_soft_mute(struct si470x* device, bool mute_enabled) {
   return ok;
 }
 
-bool si470x_get_state(struct si470x* device, struct si470x_state* state) {
+bool si470x_get_state(struct si470x* device, struct si470x_state_t* state) {
   lock_mutex(device);
 
   if (!read_registers(device)) {

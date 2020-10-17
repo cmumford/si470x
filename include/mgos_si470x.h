@@ -213,7 +213,7 @@ bool mgos_si470x_set_soft_mute(struct si470x* device, bool mute_enabled);
  *
  * @return True if successful, false if not.
  */
-bool mgos_si470x_get_state(struct si470x* device, struct si470x_state* state);
+bool mgos_si470x_get_state(struct si470x* device, struct si470x_state_t* state);
 
 /**
  * Retreive current RDS data for the tuner device.

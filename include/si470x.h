@@ -98,7 +98,7 @@ struct si470x_config_t {
 /**
  * The state of the Si470X device.
  */
-struct si470x_state {
+struct si470x_state_t {
   bool enabled;                 ///< True if the device is currently enabled.
   uint16_t manufacturer;        ///< Chip manufacturer ID.
   int firmware;                 ///< Chip firmware version.
@@ -271,7 +271,7 @@ bool si470x_set_soft_mute(struct si470x* device, bool mute_enabled);
  *
  * @return True if successful, false if not.
  */
-bool si470x_get_state(struct si470x* device, struct si470x_state* state);
+bool si470x_get_state(struct si470x* device, struct si470x_state_t* state);
 
 /**
  * Retreive current state for the tuner device.

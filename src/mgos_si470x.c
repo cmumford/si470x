@@ -217,7 +217,8 @@ bool mgos_si470x_set_soft_mute(struct si470x* device, bool mute_enabled) {
   return si470x_set_soft_mute(device, mute_enabled);
 }
 
-bool mgos_si470x_get_state(struct si470x* device, struct si470x_state* state) {
+bool mgos_si470x_get_state(struct si470x* device,
+                           struct si470x_state_t* state) {
   return si470x_get_state(device, state);
 }
 
