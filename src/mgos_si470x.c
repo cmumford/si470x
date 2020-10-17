@@ -122,7 +122,14 @@ struct si470x_t* mgos_si470x_get_device(int i2c_bus_no) {
             .region = parse_region(mgos_sys_config_get_si470x_region()),
             .advanced_ps_decoding = mgos_sys_config_get_si470x_advanced_ps(),
             .gpio2_int_pin = mgos_sys_config_get_si470x_gpio2_int_gpio(),
-            .i2c_bus = i2c_bus_no,
+            .reset_pin = mgos_sys_config_get_si470x_rst_gpio(),
+            .i2c =
+                {
+                    .bus = i2c_bus_no,
+                    .sdio_pin = -1,  // Configured in I2C settings
+                    .sclk_pin = -1,  // Configured in I2C settings.
+                    .slave_addr = 0x10,
+                },
             .port = port,
         };
         s_devices[i2c_bus_no] = mgos_si470x_create(&config);
@@ -133,7 +140,14 @@ struct si470x_t* mgos_si470x_get_device(int i2c_bus_no) {
             .region = parse_region(mgos_sys_config_get_si470x1_region()),
             .advanced_ps_decoding = mgos_sys_config_get_si470x1_advanced_ps(),
             .gpio2_int_pin = mgos_sys_config_get_si470x1_gpio2_int_gpio(),
-            .i2c_bus = i2c_bus_no,
+            .reset_pin = mgos_sys_config_get_si470x_rst_gpio(),
+            .i2c =
+                {
+                    .bus = i2c_bus_no,
+                    .sdio_pin = -1,  // Configured in I2C settings
+                    .sclk_pin = -1,  // Configured in I2C settings.
+                    .slave_addr = 0x10,
+                },
             .port = port,
         };
         s_devices[i2c_bus_no] = mgos_si470x_create(&config);

@@ -29,9 +29,10 @@ struct interrupt_handler_data {
 
 struct si470x_port_t {
   bool noop;
-  int i2c_slave_addr;
-  uint8_t i2c_bus;
-  struct mgos_i2c* i2c;
+  struct {
+    struct mgos_i2c* i2c;
+    struct si470x_i2c_params_t conf;  ///< Si470X I2C config conf.
+  } i2c;
   struct interrupt_handler_data* int_handler;
 };
 
@@ -121,10 +122,8 @@ void port_digital_write(struct si470x_port_t* port,
 }
 
 bool port_enable_i2c(struct si470x_port_t* port,
-                     uint8_t i2c_bus,
-                     uint16_t slave_addr) {
-  port->i2c_slave_addr = slave_addr;
-  port->i2c_bus = i2c_bus;
+                     const struct si470x_i2c_params_t* i2c_params) {
+  port->i2c.conf = *i2c_params;
 
   // HACK: Don't really do anything - rely on MGOS's initialization
   //       system to enable I2C.
@@ -132,7 +131,7 @@ bool port_enable_i2c(struct si470x_port_t* port,
 }
 
 bool port_i2c_enabled(struct si470x_port_t* port) {
-  return mgos_i2c_get_bus(port->i2c_bus) != NULL;
+  return mgos_i2c_get_bus(port->i2c.conf.bus) != NULL;
 }
 
 static void local_interrupt_handler(int pin, void* user_data) {
@@ -153,7 +152,7 @@ bool port_set_interrupt_handler(struct si470x_port_t* port,
     port->int_handler->user_data = user_data;
   }
 
-  if (!mgos_gpio_set_int_handler(pin, xlate_edge_type(gpio_edge_type_t),
+  if (!mgos_gpio_set_int_handler(pin, xlate_edge_type(edge_type),
                                  &local_interrupt_handler, port->int_handler)) {
     LOG(LL_ERROR, ("Error setting interrupt handler on GPIO %d", pin));
     return false;
@@ -172,13 +171,13 @@ bool port_i2c_write(struct si470x_port_t* port, const void* data, size_t len) {
     return false;
   }
 
-  if (!port->i2c) {
-    port->i2c = mgos_i2c_get_bus(port->i2c_bus);
-    if (!port->i2c)
+  if (!port->i2c.i2c) {
+    port->i2c.i2c = mgos_i2c_get_bus(port->i2c.conf.bus);
+    if (!port->i2c.i2c)
       return false;
   }
 
-  if (!mgos_i2c_write(port->i2c, port->i2c_slave_addr, data, len,
+  if (!mgos_i2c_write(port->i2c.i2c, port->i2c.conf.slave_addr, data, len,
                       /*stop=*/true)) {
     LOG(LL_ERROR, ("Can't write to device"));
     return false;
@@ -193,13 +192,13 @@ bool port_i2c_read(struct si470x_port_t* port, void* data, size_t len) {
     return false;
   }
 
-  if (!port->i2c) {
-    port->i2c = mgos_i2c_get_bus(port->i2c_bus);
-    if (!port->i2c)
+  if (!port->i2c.i2c) {
+    port->i2c.i2c = mgos_i2c_get_bus(port->i2c.conf.bus);
+    if (!port->i2c.i2c)
       return false;
   }
 
-  if (!mgos_i2c_read(port->i2c, port->i2c_slave_addr, data, len,
+  if (!mgos_i2c_read(port->i2c.i2c, port->i2c.conf.slave_addr, data, len,
                      /*stop=*/true)) {
     LOG(LL_ERROR, ("Can't read from device"));
     return false;
