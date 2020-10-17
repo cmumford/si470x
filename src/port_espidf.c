@@ -177,8 +177,9 @@ struct port* port_create(bool noop) {
 
   port->noop = noop;
   port->i2c.conf.mode = I2C_MODE_MASTER;
-  // TODO: Why isn't clk_speed defined?
-  // port->i2c_conf.clk_speed = 1000000;
+  // Max of 1MHz recommended by:
+  // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/i2c.html#_CPPv4N12i2c_config_t9clk_speedE
+  port->i2c.conf.master.clk_speed = 1000000;
   port->i2c.conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
   port->i2c.conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
 
