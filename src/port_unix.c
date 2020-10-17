@@ -68,7 +68,7 @@ static int xlate_ttl_level(enum gpio_ttl_level_t level) {
   return HIGH;
 }
 
-static int xlate_edge_type(enum edge_type type) {
+static int xlate_edge_type(enum gpio_edge_type_t type) {
   switch (type) {
     case EDGE_TYPE_FALLING:
       return INT_EDGE_FALLING;
@@ -211,7 +211,7 @@ static void local_interrupt_handler(void) {
 
 bool port_set_interrupt_handler(struct port* port,
                                 gpio_pin_t pin,
-                                enum edge_type edge_type,
+                                enum gpio_edge_type_t edge_type,
                                 InterruptHandler handler,
                                 void* user_data) {
   UNUSED(port);

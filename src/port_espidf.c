@@ -70,7 +70,7 @@ static int xlate_ttl_level(enum gpio_ttl_level_t level) {
   return 0;
 }
 
-static gpio_int_type_t xlate_edge_type(enum edge_type type) {
+static gpio_int_type_t xlate_edge_type(enum gpio_edge_type_t type) {
   switch (type) {
     case EDGE_TYPE_FALLING:
       return GPIO_INTR_NEGEDGE;
@@ -150,7 +150,7 @@ static void IRAM_ATTR gpio_isr_handler(void* arg) {
 
 static esp_err_t install_isr_service(struct port* port,
                                      uint16_t pin,
-                                     enum edge_type edge_type) {
+                                     enum gpio_edge_type_t edge_type) {
   const uint32_t pin_mask = 1 << pin;
 
   const gpio_config_t io_conf = {
@@ -245,7 +245,7 @@ bool port_i2c_enabled(struct port* port) {
 
 bool port_set_interrupt_handler(struct port* port,
                                 gpio_pin_t pin,
-                                enum edge_type edge_type,
+                                enum gpio_edge_type_t edge_type,
                                 InterruptHandler handler,
                                 void* user_data) {
   port->gpio.isr_handler = handler;

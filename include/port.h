@@ -40,7 +40,7 @@ enum gpio_pin_mode_t { PIN_MODE_INPUT, PIN_MODE_OUTPUT };
 
 enum gpio_ttl_level_t { TTL_HIGH, TTL_LOW };
 
-enum edge_type { EDGE_TYPE_FALLING, EDGE_TYPE_RISING, EDGE_TYPE_BOTH };
+enum gpio_edge_type_t { EDGE_TYPE_FALLING, EDGE_TYPE_RISING, EDGE_TYPE_BOTH };
 
 // NOTE: On Raspberry Pi user_data is always NULL.
 typedef void (*InterruptHandler)(void* user_data);
@@ -121,7 +121,7 @@ void port_digital_write(struct port* port,
  */
 bool port_set_interrupt_handler(struct port* port,
                                 gpio_pin_t pin,
-                                enum edge_type edge_type,
+                                enum gpio_edge_type_t edge_type,
                                 InterruptHandler handler,
                                 void* handler_data);
 

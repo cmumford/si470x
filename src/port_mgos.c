@@ -55,7 +55,7 @@ static bool xlate_ttl_level(enum gpio_ttl_level_t level) {
   return true;
 }
 
-static enum mgos_gpio_int_mode xlate_edge_type(enum edge_type type) {
+static enum mgos_gpio_int_mode xlate_edge_type(enum gpio_edge_type_t type) {
   switch (type) {
     case EDGE_TYPE_FALLING:
       return MGOS_GPIO_INT_EDGE_NEG;
@@ -140,7 +140,7 @@ static void local_interrupt_handler(int pin, void* user_data) {
 
 bool port_set_interrupt_handler(struct port* port,
                                 gpio_pin_t pin,
-                                enum edge_type edge_type,
+                                enum gpio_edge_type_t edge_type,
                                 InterruptHandler handler,
                                 void* user_data) {
   if (!port->int_handler) {
@@ -150,7 +150,7 @@ bool port_set_interrupt_handler(struct port* port,
     port->int_handler->user_data = user_data;
   }
 
-  if (!mgos_gpio_set_int_handler(pin, xlate_edge_type(edge_type),
+  if (!mgos_gpio_set_int_handler(pin, xlate_edge_type(gpio_edge_type_t),
                                  &local_interrupt_handler, port->int_handler)) {
     LOG(LL_ERROR, ("Error setting interrupt handler on GPIO %d", pin));
     return false;
