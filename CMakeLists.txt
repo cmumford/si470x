@@ -60,7 +60,6 @@ add_library(si470x "")
 target_sources(si470x
   PRIVATE
     "include/si470x.h"
-    "include/si470x_common.h"
     "src/port_unix.c"
     "src/si470x.c"
     "src/si470x_misc.c"

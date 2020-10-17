@@ -38,9 +38,10 @@
 
 struct si470x_port_t {
   bool noop;
-  int i2c_fd;
-  int i2c_bus;
-  int i2c_slave_addr;
+  struct {
+    int fd;
+    struct si470x_i2c_params_t conf;  ///< Si470X I2C config conf.
+  } i2c;
 };
 
 #if defined(HAVE_WIRING_PI)
@@ -87,7 +88,7 @@ struct si470x_port_t* port_create(bool noop) {
       (struct si470x_port_t*)calloc(1, sizeof(struct si470x_port_t));
 
   port->noop = noop;
-  port->i2c_fd = -1;
+  port->i2c.fd = -1;
 
   return port;
 }
@@ -169,31 +170,29 @@ void port_digital_write(struct si470x_port_t* port,
 }
 
 bool port_enable_i2c(struct si470x_port_t* port,
-                     uint8_t i2c_bus,
-                     uint16_t slave_addr) {
-  port->i2c_bus = i2c_bus;
-  port->i2c_slave_addr = slave_addr;
+                     const struct si470x_i2c_params_t* i2c_params) {
+  port->i2c.conf = *i2c_params;
 #if defined(HAVE_I2C_DEV)
   const char filename[] = "/dev/i2c-1";
   // Open I2C slave device.
-  if ((port->i2c_fd = open(filename, O_RDWR)) < 0) {
+  if ((port->i2c.fd = open(filename, O_RDWR)) < 0) {
     perror(filename);
     return false;
   }
 
   // Set slave address.
-  if (ioctl(port->i2c_fd, I2C_SLAVE, slave_addr) < 0) {
+  if (ioctl(port->i2c.fd, I2C_SLAVE, port->i2c.conf.slave_addr) < 0) {
     perror("Failed to acquire bus access and/or talk to slave");
-    close(port->i2c_fd);
-    port->i2c_fd = -1;
+    close(port->i2c.fd);
+    port->i2c.fd = -1;
     return false;
   }
 
   // Enable packet error checking.
-  if (ioctl(port->i2c_fd, I2C_PEC, 1) < 0) {
+  if (ioctl(port->i2c.fd, I2C_PEC, 1) < 0) {
     perror("Failed to enable PEC");
-    close(port->i2c_fd);
-    port->i2c_fd = -1;
+    close(port->i2c.fd);
+    port->i2c.fd = -1;
     return false;
   }
   return true;
@@ -203,7 +202,7 @@ bool port_enable_i2c(struct si470x_port_t* port,
 }
 
 bool port_i2c_enabled(struct si470x_port_t* port) {
-  return port->i2c_fd >= 0;
+  return port->i2c.fd >= 0;
 }
 
 #if defined(HAVE_WIRING_PI)
@@ -237,18 +236,18 @@ bool port_set_interrupt_handler(struct si470x_port_t* port,
 }
 
 bool port_i2c_write(struct si470x_port_t* port, const void* data, size_t len) {
-  if (port->i2c_fd < 0)
+  if (port->i2c.fd < 0)
     return false;
-  int bytes_written = write(port->i2c_fd, data, len);
+  int bytes_written = write(port->i2c.fd, data, len);
   if (bytes_written < 0)
     return false;
   return bytes_written == (int)len;
 }
 
 bool port_i2c_read(struct si470x_port_t* port, void* data, size_t len) {
-  if (port->i2c_fd < 0)
+  if (port->i2c.fd < 0)
     return false;
-  int bytes_read = read(port->i2c_fd, data, len);
+  int bytes_read = read(port->i2c.fd, data, len);
   if (bytes_read < 0)
     return false;
   return bytes_read == (int)len;
