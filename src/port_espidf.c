@@ -34,10 +34,10 @@ const size_t I2C_MASTER_RX_BUF_DISABLE = 0;
 struct si470x_port_t {
   bool noop;  ///< No-op setting.
   struct {
-    i2c_config_t conf;    ///< I2C config params.
-    i2c_port_t port;      ///< The I2C bus number.
-    uint16_t slave_addr;  ///< The device I2C address.
-    bool enabled;         ///< Has I2C been initialized?
+    i2c_config_t conf;                  ///< ESP-IDF I2C config params.
+    i2c_port_t port;                    ///< The I2C bus number.
+    struct si470x_i2c_params_t params;  ///< Si470X I2C config params.
+    bool enabled;                       ///< Has I2C been initialized?
     esp_err_t init_err;
   } i2c;
   struct {
@@ -90,8 +90,8 @@ static esp_err_t i2c_master_read_slave(struct si470x_port_t* port,
   }
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
-  i2c_master_write_byte(cmd, (port->i2c.slave_addr << 1) | I2C_MASTER_READ,
-                        ACK_CHECK_EN);
+  i2c_master_write_byte(
+      cmd, (port->i2c.params.slave_addr << 1) | I2C_MASTER_READ, ACK_CHECK_EN);
   if (size > 1) {
     i2c_master_read(cmd, data_rd, size - 1, I2C_MASTER_ACK);
   }
@@ -108,8 +108,8 @@ static esp_err_t i2c_master_write_slave(struct si470x_port_t* port,
                                         size_t size) {
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
-  i2c_master_write_byte(cmd, (port->i2c.slave_addr << 1) | I2C_MASTER_WRITE,
-                        ACK_CHECK_EN);
+  i2c_master_write_byte(
+      cmd, (port->i2c.params.slave_addr << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
   // In newer IDF's data is const.
   i2c_master_write(cmd, (uint8_t*)(data_wr), size, ACK_CHECK_EN);
   i2c_master_stop(cmd);
@@ -234,10 +234,9 @@ void port_digital_write(struct si470x_port_t* port,
 }
 
 bool port_enable_i2c(struct si470x_port_t* port,
-                     uint8_t i2c_bus,
-                     uint16_t slave_addr) {
-  port->i2c.port = i2c_bus;
-  port->i2c.slave_addr = slave_addr;
+                     const struct si470x_i2c_params_t* i2c_params) {
+  port->i2c.port = i2c_params->bus;
+  port->i2c.params = *i2c_params;
 
   return i2c_master_init(port) == ESP_OK;
 }

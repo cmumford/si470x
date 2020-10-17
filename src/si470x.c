@@ -193,7 +193,7 @@ static bool enable_i2c(struct si470x_t* device) {
   if (device->test_blocks)
     return true;
 #endif
-  return port_enable_i2c(device->port, device->i2c_bus, device->i2caddr);
+  return port_enable_i2c(device->port, &device->i2c);
 }
 
 /**
@@ -393,13 +393,12 @@ struct si470x_t* si470x_create(const struct si470x_config_t* config) {
 
 #if !defined(MGOS)
   device->reset_pin = config->reset_pin;
-  device->sdio_pin = config->sdio_pin;
-  device->sclk_pin = config->sclk_pin;
+  device->sdio_pin = config->i2c.sdio_pin;
+  device->sclk_pin = config->i2c.sclk_pin;
 #endif
   device->gpio2_int_pin = config->gpio2_int_pin;
   device->region = config->region;
-  device->i2c_bus = config->i2c_bus;
-  device->i2caddr = 0x10;
+  device->i2c = config->i2c;
   // The maximum seek/tune time in msec. This is specified in the datasheet
   // and may be device specific. 60 msec is for the Si4703.
   device->max_seek_tune_ms = 60;

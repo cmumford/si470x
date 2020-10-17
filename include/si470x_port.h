@@ -32,8 +32,12 @@ extern "C" {
 
 #if defined(CONFIG_IDF_TARGET_ESP32)
 typedef gpio_num_t gpio_pin_t;
+#elif defined(HAVE_WIRING_PI)
+// When using wiringPi, GPIO pin values are not GPIO,
+// they are wiringPi values. See http://wiringpi.com/pins/
+typedef int gpio_pin_t;
 #else
-typedef uint16_t gpio_pin_t;
+typedef int16_t gpio_pin_t;
 #endif
 
 enum gpio_pin_mode_t { PIN_MODE_INPUT, PIN_MODE_OUTPUT };
@@ -46,6 +50,19 @@ enum gpio_edge_type_t { EDGE_TYPE_FALLING, EDGE_TYPE_RISING, EDGE_TYPE_BOTH };
 typedef void (*InterruptHandler)(void* user_data);
 
 struct si470x_port_t;
+
+/**
+ * I2C configuration parameters for a Si470X device.
+ *
+ * Note: The Raspberry Pi uses a system-wide I2C configuration, which defines
+ *       the SDA/SCK pins. On this platform these two members are not used.
+ */
+struct si470x_i2c_params_t {
+  int bus;  ///< The I2C bus (or port) to which the Si470X is connected.
+  gpio_pin_t sdio_pin;  ///< The I2C SDA pin.
+  gpio_pin_t sclk_pin;  ///< The I2C SCK pin.
+  uint16_t slave_addr;  ///< The Si470x slave address (usually 0x10);
+};
 
 /**
  * Create a port.
@@ -129,12 +146,10 @@ bool port_set_interrupt_handler(struct si470x_port_t* port,
  * Enable I2C for the given port.
  *
  * @param port The port object.
- * @param i2c_bus The I2C bus number.
- * @param slave_addr The address of the slave.
+ * @param i2c_params I2C parameters.
  */
 bool port_enable_i2c(struct si470x_port_t* port,
-                     uint8_t i2c_bus,
-                     uint16_t slave_addr);
+                     const struct si470x_i2c_params_t* i2c_params);
 
 /**
  * Is I2C enabled for the given port?

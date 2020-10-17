@@ -146,13 +146,12 @@
 
 struct si470x_t {
   // Instance values.
-  uint16_t shadow_reg[16];      ///< A copy of the device registers.
-  int i2c_bus;                  ///< I2C bus to which the Si470X is connected.
-  uint16_t i2caddr;             ///< The Si470X I2C tuner address.
-  uint16_t max_seek_tune_ms;    ///< Maximum Seek/Tune time (milliseconds).
-  enum si470x_region_t region;  ///< The broadcast region.
-  struct rds_data rds;          ///< Current RDS data.
-  struct rds_decoder* decoder;  ///< The RDS decoder.
+  uint16_t shadow_reg[16];         ///< A copy of the device registers.
+  struct si470x_i2c_params_t i2c;  ///< I2C parameters.
+  uint16_t max_seek_tune_ms;       ///< Maximum Seek/Tune time (milliseconds).
+  enum si470x_region_t region;     ///< The broadcast region.
+  struct rds_data rds;             ///< Current RDS data.
+  struct rds_decoder* decoder;     ///< The RDS decoder.
 
   /**
    * The GPIO pin (on the Controller/RPi) connected to the Si470Xs GPIO2 pin.

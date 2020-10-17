@@ -35,6 +35,7 @@
 #include <stdint.h>
 
 #include <rds_decoder.h>
+#include <si470x_port.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,21 +77,11 @@ struct si470x_config_t {
   /**
    * The pin connected to the Si470X's GPIO2 interrupt pin.
    *
-   * Set to -1 not use interrupts.
+   * Set to -1 (GPIO_NUM_NC on Mongoose OS) not use interrupts.
    */
-  int gpio2_int_pin;
-  int i2c_bus;  ///< The I2C bus number on which the Si470X is connected.
-
-#if !defined(MGOS)
-
-  // These pin numbers are not GPIO - they are wiringPi values.
-  // See http://wiringpi.com/pins/
-
-  int reset_pin;  ///< The pin used to reset the tuner.
-  int sdio_pin;   ///< The I2C SDA pin.
-  int sclk_pin;   ///< The I2C SCK pin.
-
-#endif  // !defined(MGOS)
+  gpio_pin_t gpio2_int_pin;
+  gpio_pin_t reset_pin;            ///< The pin used to reset the tuner.
+  struct si470x_i2c_params_t i2c;  ///< Device I2C settings.
 
   struct si470x_port_t* port;  ///< The platform porting layer.
 };
