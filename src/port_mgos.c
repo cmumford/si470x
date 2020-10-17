@@ -27,7 +27,7 @@ struct interrupt_handler_data {
   void* user_data;
 };
 
-struct si470x_port {
+struct si470x_port_t {
   bool noop;
   int i2c_slave_addr;
   uint8_t i2c_bus;
@@ -67,16 +67,16 @@ static enum mgos_gpio_int_mode xlate_edge_type(enum gpio_edge_type_t type) {
   return MGOS_GPIO_INT_EDGE_NEG;
 }
 
-struct si470x_port* port_create(bool noop) {
-  struct si470x_port* port =
-      (struct si470x_port*)calloc(1, sizeof(struct si470x_port));
+struct si470x_port_t* port_create(bool noop) {
+  struct si470x_port_t* port =
+      (struct si470x_port_t*)calloc(1, sizeof(struct si470x_port_t));
 
   port->noop = noop;
 
   return port;
 }
 
-void port_delete(struct si470x_port* port) {
+void port_delete(struct si470x_port_t* port) {
   if (!port)
     return;
   if (port->int_handler)
@@ -84,43 +84,43 @@ void port_delete(struct si470x_port* port) {
   free(port);
 }
 
-bool port_supports_gpio(struct si470x_port* port) {
+bool port_supports_gpio(struct si470x_port_t* port) {
   UNUSED(port);
   return true;
 }
 
-bool port_supports_i2c(struct si470x_port* port) {
+bool port_supports_i2c(struct si470x_port_t* port) {
   UNUSED(port);
   // I2C is always enabled.
   return true;
 }
 
-void port_delay(struct si470x_port* port, uint16_t msec) {
+void port_delay(struct si470x_port_t* port, uint16_t msec) {
   UNUSED(port);
   mgos_msleep(msec);
 }
 
-bool port_enable_gpio(struct si470x_port* port) {
+bool port_enable_gpio(struct si470x_port_t* port) {
   UNUSED(port);
   // GPIO is always enabled.
   return true;
 }
 
-void port_set_pin_mode(struct si470x_port* port,
+void port_set_pin_mode(struct si470x_port_t* port,
                        gpio_pin_t pin,
                        enum gpio_pin_mode_t mode) {
   UNUSED(port);
   mgos_gpio_set_mode(pin, xlate_pin_mode(mode));
 }
 
-void port_digital_write(struct si470x_port* port,
+void port_digital_write(struct si470x_port_t* port,
                         gpio_pin_t pin,
                         enum gpio_ttl_level_t level) {
   UNUSED(port);
   mgos_gpio_write(pin, xlate_ttl_level(level));
 }
 
-bool port_enable_i2c(struct si470x_port* port,
+bool port_enable_i2c(struct si470x_port_t* port,
                      uint8_t i2c_bus,
                      uint16_t slave_addr) {
   port->i2c_slave_addr = slave_addr;
@@ -131,7 +131,7 @@ bool port_enable_i2c(struct si470x_port* port,
   return true;
 }
 
-bool port_i2c_enabled(struct si470x_port* port) {
+bool port_i2c_enabled(struct si470x_port_t* port) {
   return mgos_i2c_get_bus(port->i2c_bus) != NULL;
 }
 
@@ -141,7 +141,7 @@ static void local_interrupt_handler(int pin, void* user_data) {
   data->handler(data->user_data);
 }
 
-bool port_set_interrupt_handler(struct si470x_port* port,
+bool port_set_interrupt_handler(struct si470x_port_t* port,
                                 gpio_pin_t pin,
                                 enum gpio_edge_type_t edge_type,
                                 InterruptHandler handler,
@@ -166,7 +166,7 @@ bool port_set_interrupt_handler(struct si470x_port* port,
   return true;
 }
 
-bool port_i2c_write(struct si470x_port* port, const void* data, size_t len) {
+bool port_i2c_write(struct si470x_port_t* port, const void* data, size_t len) {
   if (!port_i2c_enabled(port)) {
     LOG(LL_ERROR, ("Can't write I2C not enabled"));
     return false;
@@ -187,7 +187,7 @@ bool port_i2c_write(struct si470x_port* port, const void* data, size_t len) {
   return true;
 }
 
-bool port_i2c_read(struct si470x_port* port, void* data, size_t len) {
+bool port_i2c_read(struct si470x_port_t* port, void* data, size_t len) {
   if (!port_i2c_enabled(port)) {
     LOG(LL_ERROR, ("Can't read I2C not enabled"));
     return false;

@@ -64,7 +64,7 @@ bool mgos_si470x_init(void) {
     return false;
   }
 
-  struct si470x_port* port = port_create(/*noop=*/false);
+  struct si470x_port_t* port = port_create(/*noop=*/false);
   if (mgos_sys_config_get_si470x_enable()) {
     const int reset_pin = mgos_sys_config_get_si470x_rst_gpio();
     if (reset_pin < 0) {
@@ -110,7 +110,7 @@ bool mgos_si470x_init(void) {
 struct si470x* mgos_si470x_get_device(int i2c_bus_no) {
   if (i2c_bus_no < 0 || i2c_bus_no >= (int)ARRAY_SIZE(s_devices))
     return NULL;
-  static struct si470x_port* port;
+  static struct si470x_port_t* port;
   if (!port) {
     // This leaks port, but embedded apps never quit.
     port = port_create(/*noop=*/false);

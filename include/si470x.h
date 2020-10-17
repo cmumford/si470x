@@ -92,7 +92,7 @@ struct si470x_config_t {
 
 #endif  // !defined(MGOS)
 
-  struct si470x_port* port;  ///< The platform porting layer.
+  struct si470x_port_t* port;  ///< The platform porting layer.
 };
 
 /**
@@ -111,7 +111,7 @@ struct si470x_state_t {
   uint8_t rssi;                 ///< Signal strength (in dB, 0..50+).
 };
 
-struct si470x_port;
+struct si470x_port_t;
 
 /**
  * Creates an opaque device structure (`struct si470x`) controlling the

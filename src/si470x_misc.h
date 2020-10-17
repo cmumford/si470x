@@ -176,7 +176,7 @@ struct si470x {
     void* arg;    ///< argument to pass to rds_changed_cb.
   } rds_changed;  ///< Function to call with RDS changes.
 
-  struct si470x_port* port;  ///< The porting layer.
+  struct si470x_port_t* port;  ///< The porting layer.
 
 #if defined(SUPPORT_TEST_DATA)
   const struct rds_blocks* test_blocks;  ///< The test blocks to process.
@@ -198,7 +198,7 @@ struct si470x {
 /**
  * Reset the Si470X device.
  */
-bool reset_device(struct si470x_port* port,
+bool reset_device(struct si470x_port_t* port,
                   const int si470x_rst_pin,
                   const int si470x_gpio2_int_pin,
                   const int i2c_sda_pin);

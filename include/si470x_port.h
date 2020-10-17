@@ -45,7 +45,7 @@ enum gpio_edge_type_t { EDGE_TYPE_FALLING, EDGE_TYPE_RISING, EDGE_TYPE_BOTH };
 // NOTE: On Raspberry Pi user_data is always NULL.
 typedef void (*InterruptHandler)(void* user_data);
 
-struct si470x_port;
+struct si470x_port_t;
 
 /**
  * Create a port.
@@ -53,26 +53,26 @@ struct si470x_port;
  * @param noop Set to true for a no-op port, where all calls do nothing
  *             and never fail. This is for testing.
  */
-struct si470x_port* port_create(bool noop);
+struct si470x_port_t* port_create(bool noop);
 
 /**
  * Delete the port.
  */
-void port_delete(struct si470x_port* port);
+void port_delete(struct si470x_port_t* port);
 
 /**
  * Does this port support GPIO?
  *
  * @param port The port object.
  */
-bool port_supports_gpio(struct si470x_port* port);
+bool port_supports_gpio(struct si470x_port_t* port);
 
 /**
  * Does this port support I2C?
  *
  * @param port The port object.
  */
-bool port_supports_i2c(struct si470x_port* port);
+bool port_supports_i2c(struct si470x_port_t* port);
 
 /**
  * Delay (sleep) the calling thread a specified amount of time.
@@ -80,14 +80,14 @@ bool port_supports_i2c(struct si470x_port* port);
  * @param port The port object.
  * @param msec The number of milliseconds to delay.
  */
-void port_delay(struct si470x_port* port, uint16_t msec);
+void port_delay(struct si470x_port_t* port, uint16_t msec);
 
 /**
  * Enable GPIO for this port.
  *
  * @param port The port object.
  */
-bool port_enable_gpio(struct si470x_port* port);
+bool port_enable_gpio(struct si470x_port_t* port);
 
 /**
  * Set the given pin mode.
@@ -96,7 +96,7 @@ bool port_enable_gpio(struct si470x_port* port);
  * @param pin The GPIO pin.
  * @param mode The pin mode.
  */
-void port_set_pin_mode(struct si470x_port* port,
+void port_set_pin_mode(struct si470x_port_t* port,
                        gpio_pin_t pin,
                        enum gpio_pin_mode_t mode);
 
@@ -107,7 +107,7 @@ void port_set_pin_mode(struct si470x_port* port,
  * @param pin   The pin to set.
  * @param level The port object.
  */
-void port_digital_write(struct si470x_port* port,
+void port_digital_write(struct si470x_port_t* port,
                         gpio_pin_t pin,
                         enum gpio_ttl_level_t level);
 
@@ -119,7 +119,7 @@ void port_digital_write(struct si470x_port* port,
  * @param edge_type When to call the handler.
  * @param handler The ISR handler function pointer.
  */
-bool port_set_interrupt_handler(struct si470x_port* port,
+bool port_set_interrupt_handler(struct si470x_port_t* port,
                                 gpio_pin_t pin,
                                 enum gpio_edge_type_t edge_type,
                                 InterruptHandler handler,
@@ -132,7 +132,7 @@ bool port_set_interrupt_handler(struct si470x_port* port,
  * @param i2c_bus The I2C bus number.
  * @param slave_addr The address of the slave.
  */
-bool port_enable_i2c(struct si470x_port* port,
+bool port_enable_i2c(struct si470x_port_t* port,
                      uint8_t i2c_bus,
                      uint16_t slave_addr);
 
@@ -141,7 +141,7 @@ bool port_enable_i2c(struct si470x_port* port,
  *
  * @param port The port object.
  */
-bool port_i2c_enabled(struct si470x_port* port);
+bool port_i2c_enabled(struct si470x_port_t* port);
 
 /**
  * Write data to the I2C slave.
@@ -150,7 +150,7 @@ bool port_i2c_enabled(struct si470x_port* port);
  * @param data Pointer to the data to write.
  * @param len The number of bytes to write.
  */
-bool port_i2c_write(struct si470x_port* port, const void* data, size_t len);
+bool port_i2c_write(struct si470x_port_t* port, const void* data, size_t len);
 
 /**
  * Read data from the I2C slave.
@@ -159,7 +159,7 @@ bool port_i2c_write(struct si470x_port* port, const void* data, size_t len);
  * @param data Pointer to the data to read to.
  * @param len The number of bytes to read.
  */
-bool port_i2c_read(struct si470x_port* port, void* data, size_t len);
+bool port_i2c_read(struct si470x_port_t* port, void* data, size_t len);
 
 #ifdef __cplusplus
 }
