@@ -12,7 +12,7 @@
  * Abstraction implementation for Testing.
  */
 
-#include "port.h"
+#include <si470x_port.h>
 
 #include <mgos.h>
 #include <mgos_i2c.h>

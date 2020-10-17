@@ -26,7 +26,7 @@
 #include <stdint.h>
 
 #include <rds_decoder.h>
-#include "port.h"
+#include "si470x_port.h"
 
 #ifdef __cplusplus
 extern "C" {

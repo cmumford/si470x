@@ -12,7 +12,7 @@
  * Abstraction implementation for Testing.
  */
 
-#include "port.h"
+#include <si470x_port.h>
 
 #include <driver/gpio.h>
 #include <driver/i2c.h>

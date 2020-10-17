@@ -21,9 +21,8 @@
 #pragma once
 
 #include <si470x_common.h>
-
+#include <si470x_port.h>
 #if !defined(MGOS)
-#include <port.h>
 #include <pthread.h>
 #endif
 
