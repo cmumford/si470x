@@ -30,6 +30,12 @@
 extern "C" {
 #endif
 
+#if defined(CONFIG_IDF_TARGET_ESP32)
+typedef gpio_num_t gpio_pin_t;
+#else
+typedef uint16_t gpio_pin_t;
+#endif
+
 enum pin_mode { PIN_MODE_INPUT, PIN_MODE_OUTPUT };
 
 enum ttl_level { TTL_HIGH, TTL_LOW };
@@ -90,7 +96,7 @@ bool port_enable_gpio(struct port* port);
  * @param pin The GPIO pin.
  * @param mode The pin mode.
  */
-void port_set_pin_mode(struct port* port, uint16_t pin, enum pin_mode mode);
+void port_set_pin_mode(struct port* port, gpio_pin_t pin, enum pin_mode mode);
 
 /**
  * Set the specified pin's TTL level.
@@ -99,7 +105,9 @@ void port_set_pin_mode(struct port* port, uint16_t pin, enum pin_mode mode);
  * @param pin   The pin to set.
  * @param level The port object.
  */
-void port_digital_write(struct port* port, uint16_t pin, enum ttl_level level);
+void port_digital_write(struct port* port,
+                        gpio_pin_t pin,
+                        enum ttl_level level);
 
 /**
  * Set the interrupt handler for the specified pin
@@ -110,7 +118,7 @@ void port_digital_write(struct port* port, uint16_t pin, enum ttl_level level);
  * @param handler The ISR handler function pointer.
  */
 bool port_set_interrupt_handler(struct port* port,
-                                uint16_t pin,
+                                gpio_pin_t pin,
                                 enum edge_type edge_type,
                                 InterruptHandler handler,
                                 void* handler_data);

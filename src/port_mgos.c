@@ -105,12 +105,14 @@ bool port_enable_gpio(struct port* port) {
   return true;
 }
 
-void port_set_pin_mode(struct port* port, uint16_t pin, enum pin_mode mode) {
+void port_set_pin_mode(struct port* port, gpio_pin_t pin, enum pin_mode mode) {
   UNUSED(port);
   mgos_gpio_set_mode(pin, xlate_pin_mode(mode));
 }
 
-void port_digital_write(struct port* port, uint16_t pin, enum ttl_level level) {
+void port_digital_write(struct port* port,
+                        gpio_pin_t pin,
+                        enum ttl_level level) {
   UNUSED(port);
   mgos_gpio_write(pin, xlate_ttl_level(level));
 }
@@ -135,7 +137,7 @@ static void local_interrupt_handler(int pin, void* user_data) {
 }
 
 bool port_set_interrupt_handler(struct port* port,
-                                uint16_t pin,
+                                gpio_pin_t pin,
                                 enum edge_type edge_type,
                                 InterruptHandler handler,
                                 void* user_data) {
