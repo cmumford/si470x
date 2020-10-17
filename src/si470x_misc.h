@@ -144,7 +144,7 @@
 #define SUPPORT_TEST_DATA
 #endif
 
-struct si470x {
+struct si470x_t {
   // Instance values.
   uint16_t shadow_reg[16];      ///< A copy of the device registers.
   int i2c_bus;                  ///< I2C bus to which the Si470X is connected.
@@ -206,84 +206,84 @@ bool reset_device(struct si470x_port_t* port,
 /**
  * Return the device type for given device.
  */
-enum si470x_device_t get_device(const struct si470x* device);
+enum si470x_device_t get_device(const struct si470x_t* device);
 
 /**
  * Is the STC interrupt enable bit set?
  */
-bool get_stc_interrupts_enabled(const struct si470x* device);
+bool get_stc_interrupts_enabled(const struct si470x_t* device);
 
 /**
  * Does the device support RDS.
  */
-bool get_supports_rds(const struct si470x* device);
+bool get_supports_rds(const struct si470x_t* device);
 
 /**
  * Does the device support RDS interrupts.
  */
-bool get_supports_rds_int(const struct si470x* device);
+bool get_supports_rds_int(const struct si470x_t* device);
 
 /**
  * Is the RDS interrupt enable bit set?
  */
-bool get_rds_interrupts_enabled(const struct si470x* device);
+bool get_rds_interrupts_enabled(const struct si470x_t* device);
 
 /**
  * Retrieve the signal strength (RSSI).
  */
-int get_signal_strength(const struct si470x* device);
+int get_signal_strength(const struct si470x_t* device);
 
 /**
  * Retrieve block A errors.
  */
-uint16_t get_block_a_errors(const struct si470x* device);
+uint16_t get_block_a_errors(const struct si470x_t* device);
 
 /**
  * Retrieve block B errors.
  */
-uint16_t get_block_b_errors(const struct si470x* device);
+uint16_t get_block_b_errors(const struct si470x_t* device);
 
 /**
  * Retrieve block C errors.
  */
-uint16_t get_block_c_errors(const struct si470x* device);
+uint16_t get_block_c_errors(const struct si470x_t* device);
 
 /**
  * Retrieve block D errors.
  */
-uint16_t get_block_d_errors(const struct si470x* device);
+uint16_t get_block_d_errors(const struct si470x_t* device);
 
 /**
  * Return the current channel.
  */
-int get_channel(const struct si470x* device);
+int get_channel(const struct si470x_t* device);
 
 /**
  * Return the current frequency (Hz).
  */
-uint32_t get_frequency(const struct si470x* device);
+uint32_t get_frequency(const struct si470x_t* device);
 
 /**
  * Return the manufacturer.
  */
-uint16_t get_manufacturer(const struct si470x* device);
+uint16_t get_manufacturer(const struct si470x_t* device);
 
 /**
  * Return the device part.
  */
-uint16_t get_part(const struct si470x* device);
+uint16_t get_part(const struct si470x_t* device);
 
 /**
  * Return the chip firmware.
  */
-uint16_t get_firmware(const struct si470x* device);
+uint16_t get_firmware(const struct si470x_t* device);
 
 /**
  * Return the chip revision.
  */
-uint16_t get_revision(const struct si470x* device);
+uint16_t get_revision(const struct si470x_t* device);
 
 /**
  * Convert frequency (in Hz) to channel.
  */
-uint16_t frequency_to_channel(int frequency_hz, const struct si470x* device);
+uint16_t frequency_to_channel(int frequency_hz, const struct si470x_t* device);

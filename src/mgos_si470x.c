@@ -41,7 +41,7 @@
 #endif
 
 static bool g_library_initialized = false;
-static struct si470x* s_devices[NUM_BUSES];
+static struct si470x_t* s_devices[NUM_BUSES];
 
 static enum si470x_region_t parse_region(const char* region) {
 #if 0
@@ -107,7 +107,7 @@ bool mgos_si470x_init(void) {
   return true;
 }
 
-struct si470x* mgos_si470x_get_device(int i2c_bus_no) {
+struct si470x_t* mgos_si470x_get_device(int i2c_bus_no) {
   if (i2c_bus_no < 0 || i2c_bus_no >= (int)ARRAY_SIZE(s_devices))
     return NULL;
   static struct si470x_port_t* port;
@@ -144,85 +144,86 @@ struct si470x* mgos_si470x_get_device(int i2c_bus_no) {
   return s_devices[i2c_bus_no];
 }
 
-struct si470x* mgos_si470x_get_global(void) {
+struct si470x_t* mgos_si470x_get_global(void) {
   return mgos_si470x_get_device(0);
 }
 
-struct si470x* mgos_si470x_create(const struct si470x_config_t* config) {
+struct si470x_t* mgos_si470x_create(const struct si470x_config_t* config) {
   if (!g_library_initialized) {
-    LOG(LL_ERROR, ("The si470x library was not initialized. Is it disabled?"));
+    LOG(LL_ERROR,
+        ("The si470x_t library was not initialized. Is it disabled?"));
     return NULL;
   }
   return si470x_create(config);
 }
 
-void mgos_si470x_set_rds_callback(struct si470x* device,
+void mgos_si470x_set_rds_callback(struct si470x_t* device,
                                   RDSChangedFunc rds_changed_cb,
                                   void* rds_changed_cb_data) {
   si470x_set_rds_callback(device, rds_changed_cb, rds_changed_cb_data);
 }
 
-void mgos_si470x_set_oda_callbacks(struct si470x* device,
+void mgos_si470x_set_oda_callbacks(struct si470x_t* device,
                                    DecodeODAFunc decode_cb,
                                    ClearODAFunc clear_cb,
                                    void* cb_data) {
   si470x_set_oda_callbacks(device, decode_cb, clear_cb, cb_data);
 }
 
-void mgos_si470x_delete(struct si470x* device) {
+void mgos_si470x_delete(struct si470x_t* device) {
   si470x_delete(device);
 }
 
 /*
  * Powers on the chip as per instructions in AN230 rev. 0.9, page 12.
  */
-bool mgos_si470x_power_on(struct si470x* device) {
+bool mgos_si470x_power_on(struct si470x_t* device) {
   return si470x_power_on(device);
 }
 
 // Sequence defined in AN230 table 4.
-bool mgos_si470x_power_off(struct si470x* device) {
+bool mgos_si470x_power_off(struct si470x_t* device) {
   return si470x_power_off(device);
 }
 
-bool mgos_si470x_is_on(struct si470x* device) {
+bool mgos_si470x_is_on(struct si470x_t* device) {
   return si470x_is_on(device);
 }
 
-bool mgos_si470x_set_frequency(struct si470x* device, int frequency) {
+bool mgos_si470x_set_frequency(struct si470x_t* device, int frequency) {
   return si470x_set_frequency(device, frequency);
 }
 
-int mgos_si470x_seek_up(struct si470x* device,
+int mgos_si470x_seek_up(struct si470x_t* device,
                         bool allow_wrap,
                         bool* reached_sfbl) {
   return si470x_seek_up(device, allow_wrap, reached_sfbl);
 }
 
-int mgos_si470x_seek_down(struct si470x* device,
+int mgos_si470x_seek_down(struct si470x_t* device,
                           bool allow_wrap,
                           bool* reached_sfbl) {
   return si470x_seek_down(device, allow_wrap, reached_sfbl);
 }
 
-bool mgos_si470x_set_volume(struct si470x* device, int volume) {
+bool mgos_si470x_set_volume(struct si470x_t* device, int volume) {
   return si470x_set_volume(device, volume);
 }
 
-bool mgos_si470x_set_mute(struct si470x* device, bool mute_enabled) {
+bool mgos_si470x_set_mute(struct si470x_t* device, bool mute_enabled) {
   return si470x_set_mute(device, mute_enabled);
 }
 
-bool mgos_si470x_set_soft_mute(struct si470x* device, bool mute_enabled) {
+bool mgos_si470x_set_soft_mute(struct si470x_t* device, bool mute_enabled) {
   return si470x_set_soft_mute(device, mute_enabled);
 }
 
-bool mgos_si470x_get_state(struct si470x* device,
+bool mgos_si470x_get_state(struct si470x_t* device,
                            struct si470x_state_t* state) {
   return si470x_get_state(device, state);
 }
 
-bool mgos_si470x_get_rds_data(struct si470x* device,
+bool mgos_si470x_get_rds_data(struct si470x_t* device,
                               struct rds_data* rds_data) {
   return si470x_get_rds_data(device, rds_data);
 }

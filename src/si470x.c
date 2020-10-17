@@ -43,11 +43,11 @@ static uint16_t SwapEndian(uint16_t val) {
 /**
  * This device is a singleton on the Raspberry Pi.
  */
-struct si470x* g_device;
+struct si470x_t* g_device;
 
 #endif  // defined(HAVE_wIRING_PI)
 
-static void lock_mutex(struct si470x* device) {
+static void lock_mutex(struct si470x_t* device) {
 #if defined(HAVE_WIRING_PI)
   pthread_mutex_lock(&device->mutex);
 #else
@@ -55,7 +55,7 @@ static void lock_mutex(struct si470x* device) {
 #endif
 }
 
-static void unlock_mutex(struct si470x* device) {
+static void unlock_mutex(struct si470x_t* device) {
 #if defined(HAVE_WIRING_PI)
   pthread_mutex_unlock(&device->mutex);
 #else
@@ -67,7 +67,7 @@ static void unlock_mutex(struct si470x* device) {
  * Read the entire register control set from the associated Si470X into
  * the `device` struct.
  */
-static bool read_registers(struct si470x* device) {
+static bool read_registers(struct si470x_t* device) {
 #if defined(SUPPORT_TEST_DATA)
   if (device->test_blocks)
     return true;
@@ -91,7 +91,7 @@ static bool read_registers(struct si470x* device) {
 /**
  * Write the control registers (0x02..0x07) to the Si470X device.
  */
-static bool update_registers(const struct si470x* device) {
+static bool update_registers(const struct si470x_t* device) {
 #if defined(SUPPORT_TEST_DATA)
   if (device->test_blocks)
     return true;
@@ -114,10 +114,10 @@ static bool update_registers(const struct si470x* device) {
  */
 static void stc_interrupt_handler(void* user_data) {
 #if defined(HAVE_WIRING_PI)
-  struct si470x* device = g_device;
+  struct si470x_t* device = g_device;
   UNUSED(user_data);
 #else
-  struct si470x* device = (struct si470x*)user_data;
+  struct si470x_t* device = (struct si470x_t*)user_data;
 #endif
 
   bool dirty = false;
@@ -156,7 +156,7 @@ DONE:
 
 #if defined(SUPPORT_TEST_DATA)
 static void* rds_test_data_func(void* arg) {
-  struct si470x* device = (struct si470x*)arg;
+  struct si470x_t* device = (struct si470x_t*)arg;
 
   while (device->run_test_thread) {
     port_delay(device->port, device->block_delay_ms);
@@ -177,7 +177,7 @@ static void* rds_test_data_func(void* arg) {
 }
 #endif  // defined(SUPPORT_TEST_DATA)
 
-static bool set_stc_interrupt_handler(struct si470x* device) {
+static bool set_stc_interrupt_handler(struct si470x_t* device) {
   port_set_pin_mode(device->port, device->gpio2_int_pin, PIN_MODE_INPUT);
 
   if (!port_set_interrupt_handler(device->port, device->gpio2_int_pin,
@@ -188,7 +188,7 @@ static bool set_stc_interrupt_handler(struct si470x* device) {
   return true;
 }
 
-static bool enable_i2c(struct si470x* device) {
+static bool enable_i2c(struct si470x_t* device) {
 #if defined(SUPPORT_TEST_DATA)
   if (device->test_blocks)
     return true;
@@ -199,7 +199,7 @@ static bool enable_i2c(struct si470x* device) {
 /**
  * Wait for the STC bit to be set.
  */
-static bool wait_for_stc_bit_set(struct si470x* device) {
+static bool wait_for_stc_bit_set(struct si470x_t* device) {
   // Checks every 5 msec. This avoids an infinite loop which results in a crash
   // due to the watchdog timer (WDT) if, for some reason, the tuner never sets
   // the STC bit.
@@ -228,7 +228,7 @@ static bool wait_for_stc_bit_set(struct si470x* device) {
 /**
  * Wait for the STC bit to be cleared.
  */
-static bool wait_for_stc_bit_clear(struct si470x* device) {
+static bool wait_for_stc_bit_clear(struct si470x_t* device) {
   // Checks every 5 msec. This avoids an infinite loop which results in a crash
   // due to the watchdog timer (WDT) if, for some reason, the tuner never clears
   // the STC bit.
@@ -252,7 +252,7 @@ static bool wait_for_stc_bit_clear(struct si470x* device) {
  *
  * @return The channel, if it made it, or -1 if failed.
  */
-static int seek_device(struct si470x* device,
+static int seek_device(struct si470x_t* device,
                        enum SeekDir direction,
                        bool allow_wrap,
                        bool* reached_sfbl) {
@@ -302,7 +302,7 @@ static int seek_device(struct si470x* device,
  *
  * These are the required steps defined in AN230 rev. 0.9 pg. 12.
  */
-static bool min_power_on(struct si470x* device) {
+static bool min_power_on(struct si470x_t* device) {
   memset(device->shadow_reg, 0, sizeof(device->shadow_reg));
   rds_decoder_reset(device->decoder);
 
@@ -328,7 +328,7 @@ static bool min_power_on(struct si470x* device) {
   return true;
 }
 
-static void set_channel_spacing(struct si470x* device) {
+static void set_channel_spacing(struct si470x_t* device) {
   CLEAR_BITS(device->shadow_reg[SYSCONFIG2], CHAN_SPACE_MASK);
   if (device->region == REGION_EUROPE) {
     SET_BITS(device->shadow_reg[SYSCONFIG2], CHAN_SPACE_100);
@@ -337,7 +337,7 @@ static void set_channel_spacing(struct si470x* device) {
   }
 }
 
-static void set_de_emphasis(struct si470x* device) {
+static void set_de_emphasis(struct si470x_t* device) {
   if (device->region != REGION_EUROPE) {
     SET_BITS(device->shadow_reg[SYSCONFIG1], DE);
   } else {
@@ -346,7 +346,7 @@ static void set_de_emphasis(struct si470x* device) {
 }
 
 // Sequence defined in AN230 table 4.
-bool power_off(struct si470x* device) {
+bool power_off(struct si470x_t* device) {
 #if defined(SUPPORT_TEST_DATA)
   if (device->run_test_thread) {
     lock_mutex(device);
@@ -382,8 +382,9 @@ bool power_off(struct si470x* device) {
 /*vvvvvvvvvv PUBLIC FUNCTIONS *vvvvvvvvv*/
 /****************************************/
 
-struct si470x* si470x_create(const struct si470x_config_t* config) {
-  struct si470x* device = (struct si470x*)calloc(1, sizeof(struct si470x));
+struct si470x_t* si470x_create(const struct si470x_config_t* config) {
+  struct si470x_t* device =
+      (struct si470x_t*)calloc(1, sizeof(struct si470x_t));
   if (device == NULL) {
     return NULL;
   }
@@ -431,21 +432,21 @@ struct si470x* si470x_create(const struct si470x_config_t* config) {
   return device;
 }
 
-void si470x_set_rds_callback(struct si470x* device,
+void si470x_set_rds_callback(struct si470x_t* device,
                              RDSChangedFunc rds_changed_cb,
                              void* rds_changed_cb_data) {
   device->rds_changed.func = rds_changed_cb;
   device->rds_changed.arg = rds_changed_cb_data;
 }
 
-void si470x_set_oda_callbacks(struct si470x* device,
+void si470x_set_oda_callbacks(struct si470x_t* device,
                               DecodeODAFunc decode_cb,
                               ClearODAFunc clear_cb,
                               void* cb_data) {
   rds_decoder_set_oda_callbacks(device->decoder, decode_cb, clear_cb, cb_data);
 }
 
-void si470x_delete(struct si470x* device) {
+void si470x_delete(struct si470x_t* device) {
   if (device == NULL)
     return;
 
@@ -457,7 +458,7 @@ void si470x_delete(struct si470x* device) {
 /**
  * Powers on the chip as per instructions in AN230 rev. 0.9, page 12.
  */
-bool si470x_power_on(struct si470x* device) {
+bool si470x_power_on(struct si470x_t* device) {
   lock_mutex(device);
   if (!min_power_on(device)) {
     unlock_mutex(device);
@@ -526,7 +527,7 @@ bool si470x_power_on(struct si470x* device) {
   return true;
 }
 
-bool si470x_power_on_test(struct si470x* device,
+bool si470x_power_on_test(struct si470x_t* device,
                           const struct rds_blocks* test_blocks,
                           uint16_t num_test_blocks,
                           uint16_t block_delay_ms) {
@@ -558,15 +559,15 @@ bool si470x_power_on_test(struct si470x* device,
 }
 
 // Sequence defined in AN230 table 4.
-bool si470x_power_off(struct si470x* device) {
+bool si470x_power_off(struct si470x_t* device) {
   return power_off(device);
 }
 
-bool si470x_is_on(struct si470x* device) {
+bool si470x_is_on(struct si470x_t* device) {
   return device->shadow_reg[POWERCFG] & ENABLE;
 }
 
-bool si470x_set_frequency(struct si470x* device, int frequency) {
+bool si470x_set_frequency(struct si470x_t* device, int frequency) {
   const uint16_t channel = frequency_to_channel(frequency, device);
 
   lock_mutex(device);
@@ -607,17 +608,19 @@ bool si470x_set_frequency(struct si470x* device, int frequency) {
   return true;
 }
 
-int si470x_seek_up(struct si470x* device, bool allow_wrap, bool* reached_sfbl) {
+int si470x_seek_up(struct si470x_t* device,
+                   bool allow_wrap,
+                   bool* reached_sfbl) {
   return seek_device(device, SEEK_UP, allow_wrap, reached_sfbl);
 }
 
-int si470x_seek_down(struct si470x* device,
+int si470x_seek_down(struct si470x_t* device,
                      bool allow_wrap,
                      bool* reached_sfbl) {
   return seek_device(device, SEEK_DOWN, allow_wrap, reached_sfbl);
 }
 
-bool si470x_set_volume(struct si470x* device, int volume) {
+bool si470x_set_volume(struct si470x_t* device, int volume) {
   lock_mutex(device);
   if (!read_registers(device)) {
     unlock_mutex(device);
@@ -639,7 +642,7 @@ bool si470x_set_volume(struct si470x* device, int volume) {
   return ok;
 }
 
-bool si470x_set_mute(struct si470x* device, bool mute_enabled) {
+bool si470x_set_mute(struct si470x_t* device, bool mute_enabled) {
   lock_mutex(device);
   if (mute_enabled)
     CLEAR_BITS(device->shadow_reg[POWERCFG], DMUTE);
@@ -650,7 +653,7 @@ bool si470x_set_mute(struct si470x* device, bool mute_enabled) {
   return ok;
 }
 
-bool si470x_set_soft_mute(struct si470x* device, bool mute_enabled) {
+bool si470x_set_soft_mute(struct si470x_t* device, bool mute_enabled) {
   lock_mutex(device);
   if (mute_enabled)
     CLEAR_BITS(device->shadow_reg[POWERCFG], DSMUTE);
@@ -661,7 +664,7 @@ bool si470x_set_soft_mute(struct si470x* device, bool mute_enabled) {
   return ok;
 }
 
-bool si470x_get_state(struct si470x* device, struct si470x_state_t* state) {
+bool si470x_get_state(struct si470x_t* device, struct si470x_state_t* state) {
   lock_mutex(device);
 
   if (!read_registers(device)) {
@@ -701,7 +704,7 @@ bool si470x_get_state(struct si470x* device, struct si470x_state_t* state) {
   return true;
 }
 
-bool si470x_get_rds_data(struct si470x* device, struct rds_data* rds_data) {
+bool si470x_get_rds_data(struct si470x_t* device, struct rds_data* rds_data) {
   lock_mutex(device);
   *rds_data = device->rds;
   unlock_mutex(device);
@@ -710,7 +713,7 @@ bool si470x_get_rds_data(struct si470x* device, struct rds_data* rds_data) {
 
 #if defined(SUPPORT_TEST_DATA)
 
-bool si470x_rds_test_running(const struct si470x* device) {
+bool si470x_rds_test_running(const struct si470x_t* device) {
   return device->run_test_thread;
 }
 

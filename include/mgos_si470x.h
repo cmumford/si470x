@@ -40,7 +40,7 @@ extern "C" {
 /**
  * Return the Si470X device for the specified I2C bus.
  */
-struct si470x* mgos_si470x_get_device(int i2c_bus_no);
+struct si470x_t* mgos_si470x_get_device(int i2c_bus_no);
 
 /**
  * Return the first Si470X tuner device.
@@ -51,10 +51,10 @@ struct si470x* mgos_si470x_get_device(int i2c_bus_no);
  * mgos_si470x_get_device(0);
  * ```
  */
-struct si470x* mgos_si470x_get_global(void);
+struct si470x_t* mgos_si470x_get_global(void);
 
 /**
- * Creates an opaque device structure (`struct si470x`) controlling the
+ * Creates an opaque device structure (`struct si470x_t`) controlling the
  * Si470X tuner.
  *
  * Use mgos_si470x_power_on to turn on and begin using the tuner. When
@@ -64,7 +64,7 @@ struct si470x* mgos_si470x_get_global(void);
  *
  * Returns opaque handle (NULL if an error occurred).
  */
-struct si470x* mgos_si470x_create(const struct si470x_config_t* config);
+struct si470x_t* mgos_si470x_create(const struct si470x_config_t* config);
 
 /**
  * Register a function to be called with new RDS data has been decoded.
@@ -76,7 +76,7 @@ struct si470x* mgos_si470x_create(const struct si470x_config_t* config);
  * @param rds_changed_cb_data A pointer to pass as the argument to
  *                            \p rds_changed_cb.
  */
-void mgos_si470x_set_rds_callback(struct si470x* device,
+void mgos_si470x_set_rds_callback(struct si470x_t* device,
                                   RDSChangedFunc rds_changed_cb,
                                   void* rds_changed_cb_data);
 
@@ -94,7 +94,7 @@ void mgos_si470x_set_rds_callback(struct si470x* device,
  *
  * @param cb_data   Data to be passed to the callbacks when invoked.
  */
-void mgos_si470x_set_oda_callbacks(struct si470x* device,
+void mgos_si470x_set_oda_callbacks(struct si470x_t* device,
                                    DecodeODAFunc decode_cb,
                                    ClearODAFunc clear_cb,
                                    void* cb_data);
@@ -106,7 +106,7 @@ void mgos_si470x_set_oda_callbacks(struct si470x* device,
  *
  * @param device The device to delete.
  */
-void mgos_si470x_delete(struct si470x* device);
+void mgos_si470x_delete(struct si470x_t* device);
 
 /**
  * Power on the tuner.
@@ -115,7 +115,7 @@ void mgos_si470x_delete(struct si470x* device);
  *
  * @return True if successfully powered on, false if not.
  */
-bool mgos_si470x_power_on(struct si470x* device);
+bool mgos_si470x_power_on(struct si470x_t* device);
 
 /**
  * Power off the tuner.
@@ -124,7 +124,7 @@ bool mgos_si470x_power_on(struct si470x* device);
  *
  * @return True if powered off, false if not.
  */
-bool mgos_si470x_power_off(struct si470x* device);
+bool mgos_si470x_power_off(struct si470x_t* device);
 
 /**
  * Is the device currently on?
@@ -133,7 +133,7 @@ bool mgos_si470x_power_off(struct si470x* device);
  *
  * @return True if on, false if off.
  */
-bool mgos_si470x_is_on(struct si470x* device);
+bool mgos_si470x_is_on(struct si470x_t* device);
 
 /**
  * Set the tuner frequency.
@@ -143,7 +143,7 @@ bool mgos_si470x_is_on(struct si470x* device);
  *
  * @return True if successfully tuned to the specified frequency.
  */
-bool mgos_si470x_set_frequency(struct si470x* device, int frequency);
+bool mgos_si470x_set_frequency(struct si470x_t* device, int frequency);
 
 /**
  * Seek up to the next frequency.
@@ -156,7 +156,7 @@ bool mgos_si470x_set_frequency(struct si470x* device, int frequency);
  *
  * @return The found next frequency (in Hz), or -1 upon error.
  */
-int mgos_si470x_seek_up(struct si470x* device,
+int mgos_si470x_seek_up(struct si470x_t* device,
                         bool allow_wrap,
                         bool* reached_sfbl);
 
@@ -171,7 +171,7 @@ int mgos_si470x_seek_up(struct si470x* device,
  *
  * @return The found next frequency (in Hz), or -1 upon error.
  */
-int mgos_si470x_seek_down(struct si470x* device,
+int mgos_si470x_seek_down(struct si470x_t* device,
                           bool allow_wrap,
                           bool* reached_sfbl);
 
@@ -183,7 +183,7 @@ int mgos_si470x_seek_down(struct si470x* device,
  *
  * @returns True if successful, false if not.
  */
-bool mgos_si470x_set_volume(struct si470x* device, int volume);
+bool mgos_si470x_set_volume(struct si470x_t* device, int volume);
 
 /**
  * Control the device mute state.
@@ -193,7 +193,7 @@ bool mgos_si470x_set_volume(struct si470x* device, int volume);
  *
  * @returns True if successful, false if not.
  */
-bool mgos_si470x_set_mute(struct si470x* device, bool mute_enabled);
+bool mgos_si470x_set_mute(struct si470x_t* device, bool mute_enabled);
 
 /**
  * Control the device soft mute state.
@@ -203,7 +203,7 @@ bool mgos_si470x_set_mute(struct si470x* device, bool mute_enabled);
  *
  * @returns True if successful, false if not.
  */
-bool mgos_si470x_set_soft_mute(struct si470x* device, bool mute_enabled);
+bool mgos_si470x_set_soft_mute(struct si470x_t* device, bool mute_enabled);
 
 /**
  * Retreive current state for the tuner device.
@@ -213,7 +213,8 @@ bool mgos_si470x_set_soft_mute(struct si470x* device, bool mute_enabled);
  *
  * @return True if successful, false if not.
  */
-bool mgos_si470x_get_state(struct si470x* device, struct si470x_state_t* state);
+bool mgos_si470x_get_state(struct si470x_t* device,
+                           struct si470x_state_t* state);
 
 /**
  * Retreive current RDS data for the tuner device.
@@ -223,7 +224,8 @@ bool mgos_si470x_get_state(struct si470x* device, struct si470x_state_t* state);
  *
  * @return True if successful, false if not.
  */
-bool mgos_si470x_get_rds_data(struct si470x* device, struct rds_data* rds_data);
+bool mgos_si470x_get_rds_data(struct si470x_t* device,
+                              struct rds_data* rds_data);
 
 #ifdef __cplusplus
 }
