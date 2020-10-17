@@ -206,7 +206,7 @@ bool reset_device(struct si470x_port* port,
 /**
  * Return the device type for given device.
  */
-enum si470x_device get_device(const struct si470x* device);
+enum si470x_device_t get_device(const struct si470x* device);
 
 /**
  * Is the STC interrupt enable bit set?

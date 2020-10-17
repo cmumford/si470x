@@ -43,7 +43,7 @@ extern "C" {
 /**
  * The Si470X chip type.
  */
-enum si470x_device {
+enum si470x_device_t {
   DEVICE_4700 = 0,     ///< Device is a Si4700 (or not yet enabled).
   DEVICE_4701 = 1,     ///< Device is a Si4701.
   DEVICE_4702 = 2,     ///< Device is a Si4702.
@@ -99,16 +99,16 @@ struct si470x_config {
  * The state of the Si470X device.
  */
 struct si470x_state {
-  bool enabled;               ///< True if the device is currently enabled.
-  uint16_t manufacturer;      ///< Chip manufacturer ID.
-  int firmware;               ///< Chip firmware version.
-  enum si470x_device device;  ///< Chip device model.
-  char revision;              ///< The chip silicon revision {A, B, C, or D}.
-  int frequency;              ///< Currently tuned frequency (in Hz).
-  int channel;                ///< The channel (function of frequency).
-  int volume;                 ///< Current volume [0..15].
-  bool stereo;                ///< Received signal is in stereo.
-  uint8_t rssi;               ///< Signal strength (in dB, 0..50+).
+  bool enabled;                 ///< True if the device is currently enabled.
+  uint16_t manufacturer;        ///< Chip manufacturer ID.
+  int firmware;                 ///< Chip firmware version.
+  enum si470x_device_t device;  ///< Chip device model.
+  char revision;                ///< The chip silicon revision {A, B, C, or D}.
+  int frequency;                ///< Currently tuned frequency (in Hz).
+  int channel;                  ///< The channel (function of frequency).
+  int volume;                   ///< Current volume [0..15].
+  bool stereo;                  ///< Received signal is in stereo.
+  uint8_t rssi;                 ///< Signal strength (in dB, 0..50+).
 };
 
 struct si470x_port;

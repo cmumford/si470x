@@ -97,7 +97,7 @@ static uint32_t channel_to_frequency(uint16_t channel,
          (uint32_t)channel * get_channel_space_hz(device);
 }
 
-enum si470x_device get_device(const struct si470x* device) {
+enum si470x_device_t get_device(const struct si470x* device) {
   // See AN230 Table 3 for value->device mappings.
   switch ((device->shadow_reg[CHIPID] & DEVICE_MASK) >> 6) {
     case 0b0000:
@@ -117,7 +117,7 @@ bool get_stc_interrupts_enabled(const struct si470x* device) {
 }
 
 bool get_supports_rds(const struct si470x* device) {
-  const enum si470x_device dev = get_device(device);
+  const enum si470x_device_t dev = get_device(device);
   return dev == DEVICE_4701 || dev == DEVICE_4703;
 }
 
