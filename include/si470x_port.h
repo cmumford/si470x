@@ -30,7 +30,7 @@
 extern "C" {
 #endif
 
-#if defined(CONFIG_IDF_TARGET_ESP32)
+#if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP8266)
 typedef gpio_num_t gpio_pin_t;
 #elif defined(HAVE_WIRING_PI)
 // When using wiringPi, GPIO pin values are not GPIO,
