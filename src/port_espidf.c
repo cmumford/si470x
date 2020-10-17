@@ -184,10 +184,6 @@ struct si470x_port_t* port_create(bool noop) {
   port->i2c.conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
   port->i2c.conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
 
-  // TODO: Make this configurable.
-  port->i2c.conf.sda_io_num = 5;
-  port->i2c.conf.scl_io_num = 6;
-
   g_port = port;
 
   return port;
@@ -237,6 +233,8 @@ bool port_enable_i2c(struct si470x_port_t* port,
                      const struct si470x_i2c_params_t* i2c_params) {
   port->i2c.port = i2c_params->bus;
   port->i2c.params = *i2c_params;
+  port->i2c.conf.sda_io_num = i2c_params->sdio_pin;
+  port->i2c.conf.scl_io_num = i2c_params->sclk_pin;
 
   return i2c_master_init(port) == ESP_OK;
 }
