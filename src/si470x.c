@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "logging.h"
 #include "rds_decoder.h"
 #include "si470x_misc.h"
 
@@ -308,7 +309,7 @@ static bool min_power_on(struct si470x* device) {
   // Set the XOSCEN bit to power up the crystal.
   device->shadow_reg[TEST1] = XOSCEN | XO_UNKN;
   if (!update_registers(device)) {
-    perror("Can't update registers");
+    PERROR("Can't update registers");
     return false;
   }
 
@@ -319,12 +320,11 @@ static bool min_power_on(struct si470x* device) {
   device->shadow_reg[POWERCFG] = DMUTE | DSMUTE | ENABLE;
   if (!update_registers(device)) {
     return false;
-    perror("Can't update registers (2)");
+    PERROR("Can't update registers (2)");
   }
 
   // Wait for device powerup. This is from the Si4703 datasheet.
   port_delay(device->port, 110);
-
   return true;
 }
 
@@ -502,11 +502,13 @@ bool si470x_power_on(struct si470x* device) {
 
   if (!update_registers(device)) {
     unlock_mutex(device);
+    PERROR("Can't update registers");
     return false;
   }
 
   if (!read_registers(device)) {
     unlock_mutex(device);
+    PERROR("Can't read registers");
     return false;
   }
 
@@ -541,7 +543,7 @@ bool si470x_power_on_test(struct si470x* device,
 
   if (pthread_create(&device->sdr_test_thread,
                      /*attr=*/NULL, rds_test_data_func, device)) {
-    perror("Can't create thread");
+    PERROR("Can't create thread");
     return false;
   }
 

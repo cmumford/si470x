@@ -160,8 +160,10 @@ bool port_set_interrupt_handler(struct port* port,
 }
 
 bool port_i2c_write(struct port* port, const void* data, size_t len) {
-  if (!port_i2c_enabled(port))
+  if (!port_i2c_enabled(port)) {
+    LOG(LL_ERROR, ("Can't write I2C not enabled"));
     return false;
+  }
 
   if (!port->i2c) {
     port->i2c = mgos_i2c_get_bus(port->i2c_bus);
@@ -179,8 +181,10 @@ bool port_i2c_write(struct port* port, const void* data, size_t len) {
 }
 
 bool port_i2c_read(struct port* port, void* data, size_t len) {
-  if (!port_i2c_enabled(port))
+  if (!port_i2c_enabled(port)) {
+    LOG(LL_ERROR, ("Can't read I2C not enabled"));
     return false;
+  }
 
   if (!port->i2c) {
     port->i2c = mgos_i2c_get_bus(port->i2c_bus);
