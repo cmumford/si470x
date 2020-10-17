@@ -180,9 +180,9 @@ static void* rds_test_data_func(void* arg) {
 static bool set_stc_interrupt_handler(struct si470x* device) {
   port_set_pin_mode(device->port, device->gpio2_int_pin, PIN_MODE_INPUT);
 
-  if (port_set_interrupt_handler(device->port, device->gpio2_int_pin,
-                                 EDGE_TYPE_FALLING, &stc_interrupt_handler,
-                                 device)) {
+  if (!port_set_interrupt_handler(device->port, device->gpio2_int_pin,
+                                  EDGE_TYPE_FALLING, &stc_interrupt_handler,
+                                  device)) {
     return false;
   }
   return true;
