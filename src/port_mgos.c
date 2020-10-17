@@ -35,7 +35,7 @@ struct port {
   struct interrupt_handler_data* int_handler;
 };
 
-static enum mgos_gpio_mode xlate_pin_mode(enum pin_mode mode) {
+static enum mgos_gpio_mode xlate_pin_mode(enum gpio_pin_mode_t mode) {
   switch (mode) {
     case PIN_MODE_INPUT:
       return MGOS_GPIO_MODE_INPUT;
@@ -105,7 +105,9 @@ bool port_enable_gpio(struct port* port) {
   return true;
 }
 
-void port_set_pin_mode(struct port* port, gpio_pin_t pin, enum pin_mode mode) {
+void port_set_pin_mode(struct port* port,
+                       gpio_pin_t pin,
+                       enum gpio_pin_mode_t mode) {
   UNUSED(port);
   mgos_gpio_set_mode(pin, xlate_pin_mode(mode));
 }

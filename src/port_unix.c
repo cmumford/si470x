@@ -48,7 +48,7 @@ struct port {
 InterruptHandler g_interrupt_handler;
 void* g_isr_user_data;
 
-static int xlate_pin_mode(enum pin_mode mode) {
+static int xlate_pin_mode(enum gpio_pin_mode_t mode) {
   switch (mode) {
     case PIN_MODE_INPUT:
       return INPUT;
@@ -143,7 +143,9 @@ bool port_enable_gpio(struct port* port) {
   return true;
 }
 
-void port_set_pin_mode(struct port* port, gpio_pin_t pin, enum pin_mode mode) {
+void port_set_pin_mode(struct port* port,
+                       gpio_pin_t pin,
+                       enum gpio_pin_mode_t mode) {
   UNUSED(port);
 #if defined(HAVE_WIRING_PI)
   pinMode(pin, xlate_pin_mode(mode));

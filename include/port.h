@@ -36,7 +36,7 @@ typedef gpio_num_t gpio_pin_t;
 typedef uint16_t gpio_pin_t;
 #endif
 
-enum pin_mode { PIN_MODE_INPUT, PIN_MODE_OUTPUT };
+enum gpio_pin_mode_t { PIN_MODE_INPUT, PIN_MODE_OUTPUT };
 
 enum ttl_level { TTL_HIGH, TTL_LOW };
 
@@ -96,7 +96,9 @@ bool port_enable_gpio(struct port* port);
  * @param pin The GPIO pin.
  * @param mode The pin mode.
  */
-void port_set_pin_mode(struct port* port, gpio_pin_t pin, enum pin_mode mode);
+void port_set_pin_mode(struct port* port,
+                       gpio_pin_t pin,
+                       enum gpio_pin_mode_t mode);
 
 /**
  * Set the specified pin's TTL level.

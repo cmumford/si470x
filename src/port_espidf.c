@@ -50,7 +50,7 @@ struct port {
 
 static struct port* g_port;
 
-static gpio_mode_t xlate_pin_mode(enum pin_mode mode) {
+static gpio_mode_t xlate_pin_mode(enum gpio_pin_mode_t mode) {
   switch (mode) {
     case PIN_MODE_INPUT:
       return GPIO_MODE_INPUT;
@@ -218,7 +218,9 @@ bool port_enable_gpio(struct port* port) {
   return true;
 }
 
-void port_set_pin_mode(struct port* port, gpio_pin_t pin, enum pin_mode mode) {
+void port_set_pin_mode(struct port* port,
+                       gpio_pin_t pin,
+                       enum gpio_pin_mode_t mode) {
   UNUSED(port);
   gpio_set_direction(pin, xlate_pin_mode(mode));
 }
