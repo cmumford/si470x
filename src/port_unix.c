@@ -213,11 +213,14 @@ bool port_set_interrupt_handler(struct port* port,
   UNUSED(port);
   UNUSED(user_data);
 #if defined(HAVE_WIRING_PI)
-  if (g_interrupt_handler)
+  if (g_interrupt_handler) {
+    fprintf(stderr, "Interrupt handler already installed\n");
     return false;
+  }
   g_interrupt_handler = handler;
   g_isr_user_data = user_data;
-  return wiringPiISR(pin, xlate_edge_type(edge_type), &local_interrupt_handler);
+  return wiringPiISR(pin, xlate_edge_type(edge_type),
+                     &local_interrupt_handler) >= 0;
 #else
   UNUSED(pin);
   UNUSED(edge_type);
