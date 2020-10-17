@@ -90,7 +90,7 @@ struct si470x_config {
 
 #endif  // !defined(MGOS)
 
-  struct port* port;  ///< The platform porting layer.
+  struct si470x_port* port;  ///< The platform porting layer.
 };
 
 /**

@@ -39,7 +39,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-struct port;
+struct si470x_port;
 
 /**
  * Creates an opaque device structure (`struct si470x`) controlling the

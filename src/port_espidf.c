@@ -31,7 +31,7 @@ const bool ACK_CHECK_EN = true;  ///< I2C master will check ack from slave.
 const size_t I2C_MASTER_TX_BUF_DISABLE = 0;
 const size_t I2C_MASTER_RX_BUF_DISABLE = 0;
 
-struct port {
+struct si470x_port {
   bool noop;  ///< No-op setting.
   struct {
     i2c_config_t conf;    ///< I2C config params.
@@ -48,7 +48,7 @@ struct port {
   } gpio;
 };
 
-static struct port* g_port;
+static struct si470x_port* g_port;
 
 static gpio_mode_t xlate_pin_mode(enum gpio_pin_mode_t mode) {
   switch (mode) {
@@ -82,7 +82,7 @@ static gpio_int_type_t xlate_edge_type(enum gpio_edge_type_t type) {
   return GPIO_INTR_NEGEDGE;
 }
 
-static esp_err_t i2c_master_read_slave(struct port* port,
+static esp_err_t i2c_master_read_slave(struct si470x_port* port,
                                        uint8_t* data_rd,
                                        size_t size) {
   if (size == 0) {
@@ -103,7 +103,7 @@ static esp_err_t i2c_master_read_slave(struct port* port,
   return ret;
 }
 
-static esp_err_t i2c_master_write_slave(struct port* port,
+static esp_err_t i2c_master_write_slave(struct si470x_port* port,
                                         const uint8_t* data_wr,
                                         size_t size) {
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -119,7 +119,7 @@ static esp_err_t i2c_master_write_slave(struct port* port,
   return ret;
 }
 
-static esp_err_t i2c_master_init(struct port* port) {
+static esp_err_t i2c_master_init(struct si470x_port* port) {
   if (port->i2c.enabled)
     return port->i2c.init_err;
 
@@ -148,7 +148,7 @@ static void IRAM_ATTR gpio_isr_handler(void* arg) {
   xQueueSendFromISR(g_port->gpio.event_queue, &gpio_num, NULL);
 }
 
-static esp_err_t install_isr_service(struct port* port,
+static esp_err_t install_isr_service(struct si470x_port* port,
                                      uint16_t pin,
                                      enum gpio_edge_type_t edge_type) {
   const uint32_t pin_mask = 1 << pin;
@@ -172,8 +172,9 @@ static esp_err_t install_isr_service(struct port* port,
   return gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
 }
 
-struct port* port_create(bool noop) {
-  struct port* port = (struct port*)calloc(1, sizeof(struct port));
+struct si470x_port* port_create(bool noop) {
+  struct si470x_port* port =
+      (struct si470x_port*)calloc(1, sizeof(struct si470x_port));
 
   port->noop = noop;
   port->i2c.conf.mode = I2C_MODE_MASTER;
@@ -192,58 +193,60 @@ struct port* port_create(bool noop) {
   return port;
 }
 
-void port_delete(struct port* port) {
+void port_delete(struct si470x_port* port) {
   if (!port)
     return;
   free(port);
 }
 
-bool port_supports_gpio(struct port* port) {
+bool port_supports_gpio(struct si470x_port* port) {
   UNUSED(port);
   return true;
 }
 
-bool port_supports_i2c(struct port* port) {
+bool port_supports_i2c(struct si470x_port* port) {
   UNUSED(port);
   return true;
 }
 
-void port_delay(struct port* port, uint16_t msec) {
+void port_delay(struct si470x_port* port, uint16_t msec) {
   UNUSED(port);
   vTaskDelay(msec / portTICK_PERIOD_MS);
 }
 
-bool port_enable_gpio(struct port* port) {
+bool port_enable_gpio(struct si470x_port* port) {
   UNUSED(port);
   return true;
 }
 
-void port_set_pin_mode(struct port* port,
+void port_set_pin_mode(struct si470x_port* port,
                        gpio_pin_t pin,
                        enum gpio_pin_mode_t mode) {
   UNUSED(port);
   gpio_set_direction(pin, xlate_pin_mode(mode));
 }
 
-void port_digital_write(struct port* port,
+void port_digital_write(struct si470x_port* port,
                         gpio_pin_t pin,
                         enum gpio_ttl_level_t level) {
   UNUSED(port);
   gpio_set_level(pin, xlate_ttl_level(level));
 }
 
-bool port_enable_i2c(struct port* port, uint8_t i2c_bus, uint16_t slave_addr) {
+bool port_enable_i2c(struct si470x_port* port,
+                     uint8_t i2c_bus,
+                     uint16_t slave_addr) {
   port->i2c.port = i2c_bus;
   port->i2c.slave_addr = slave_addr;
 
   return i2c_master_init(port) == ESP_OK;
 }
 
-bool port_i2c_enabled(struct port* port) {
+bool port_i2c_enabled(struct si470x_port* port) {
   return port->i2c.enabled && port->i2c.init_err == ESP_OK;
 }
 
-bool port_set_interrupt_handler(struct port* port,
+bool port_set_interrupt_handler(struct si470x_port* port,
                                 gpio_pin_t pin,
                                 enum gpio_edge_type_t edge_type,
                                 InterruptHandler handler,
@@ -260,10 +263,10 @@ bool port_set_interrupt_handler(struct port* port,
   return gpio_isr_handler_add(pin, gpio_isr_handler, handler) == ESP_OK;
 }
 
-bool port_i2c_write(struct port* port, const void* data, size_t len) {
+bool port_i2c_write(struct si470x_port* port, const void* data, size_t len) {
   return i2c_master_write_slave(port, data, len) == ESP_OK;
 }
 
-bool port_i2c_read(struct port* port, void* data, size_t len) {
+bool port_i2c_read(struct si470x_port* port, void* data, size_t len) {
   return i2c_master_read_slave(port, data, len) == ESP_OK;
 }

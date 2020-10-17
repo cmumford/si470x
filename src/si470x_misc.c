@@ -25,7 +25,7 @@
  *
  * I2C must be disabled before calling this function.
  */
-bool reset_device(struct port* port,
+bool reset_device(struct si470x_port* port,
                   const int si470x_rst_pin,
                   const int si470x_gpio2_int_pin,
                   const int i2c_sda_pin) {

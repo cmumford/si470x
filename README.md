@@ -75,7 +75,7 @@ const struct si470x_config device_config = {
     .sclk_pin = 9,       // GPIO3
 };
 
-const struct port port_config {
+const struct si470x_port port_config {
   .delay = port_delay, .enable_gpio = port_enable_gpio,
   .set_pin_mode = port_set_pin_mode, .digital_write = port_digital_write,
   .set_interrupt_handler = port_set_interrupt_handler,

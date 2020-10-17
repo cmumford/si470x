@@ -36,7 +36,7 @@
     (void)(expr);    \
   } while (0)
 
-struct port {
+struct si470x_port {
   bool noop;
   int i2c_fd;
   int i2c_bus;
@@ -82,8 +82,9 @@ static int xlate_edge_type(enum gpio_edge_type_t type) {
 
 #endif  // defined(HAVE_WIRING_PI)
 
-struct port* port_create(bool noop) {
-  struct port* port = (struct port*)calloc(1, sizeof(struct port));
+struct si470x_port* port_create(bool noop) {
+  struct si470x_port* port =
+      (struct si470x_port*)calloc(1, sizeof(struct si470x_port));
 
   port->noop = noop;
   port->i2c_fd = -1;
@@ -91,13 +92,13 @@ struct port* port_create(bool noop) {
   return port;
 }
 
-void port_delete(struct port* port) {
+void port_delete(struct si470x_port* port) {
   if (!port)
     return;
   free(port);
 }
 
-bool port_supports_gpio(struct port* port) {
+bool port_supports_gpio(struct si470x_port* port) {
   UNUSED(port);
 #if defined(HAVE_WIRING_PI) || defined(HAVE_I2C_DEV)
   return true;
@@ -106,7 +107,7 @@ bool port_supports_gpio(struct port* port) {
 #endif
 }
 
-bool port_supports_i2c(struct port* port) {
+bool port_supports_i2c(struct si470x_port* port) {
   UNUSED(port);
 #if defined(HAVE_WIRING_PI) || defined(HAVE_I2C_DEV)
   return true;
@@ -115,7 +116,7 @@ bool port_supports_i2c(struct port* port) {
 #endif
 }
 
-void port_delay(struct port* port, uint16_t msec) {
+void port_delay(struct si470x_port* port, uint16_t msec) {
   UNUSED(port);
   // usleep isn't always available on RPi, but delay is. Checking for
   // __arm__ is a poor way of detecting RPi.
@@ -135,7 +136,7 @@ void port_delay(struct port* port, uint16_t msec) {
 #endif
 }
 
-bool port_enable_gpio(struct port* port) {
+bool port_enable_gpio(struct si470x_port* port) {
   UNUSED(port);
 #if defined(HAVE_WIRING_PI)
   wiringPiSetupGpio();
@@ -143,7 +144,7 @@ bool port_enable_gpio(struct port* port) {
   return true;
 }
 
-void port_set_pin_mode(struct port* port,
+void port_set_pin_mode(struct si470x_port* port,
                        gpio_pin_t pin,
                        enum gpio_pin_mode_t mode) {
   UNUSED(port);
@@ -155,7 +156,7 @@ void port_set_pin_mode(struct port* port,
 #endif
 }
 
-void port_digital_write(struct port* port,
+void port_digital_write(struct si470x_port* port,
                         gpio_pin_t pin,
                         enum gpio_ttl_level_t level) {
   UNUSED(port);
@@ -167,7 +168,9 @@ void port_digital_write(struct port* port,
 #endif
 }
 
-bool port_enable_i2c(struct port* port, uint8_t i2c_bus, uint16_t slave_addr) {
+bool port_enable_i2c(struct si470x_port* port,
+                     uint8_t i2c_bus,
+                     uint16_t slave_addr) {
   port->i2c_bus = i2c_bus;
   port->i2c_slave_addr = slave_addr;
 #if defined(HAVE_I2C_DEV)
@@ -199,7 +202,7 @@ bool port_enable_i2c(struct port* port, uint8_t i2c_bus, uint16_t slave_addr) {
 #endif
 }
 
-bool port_i2c_enabled(struct port* port) {
+bool port_i2c_enabled(struct si470x_port* port) {
   return port->i2c_fd >= 0;
 }
 
@@ -209,7 +212,7 @@ static void local_interrupt_handler(void) {
 }
 #endif
 
-bool port_set_interrupt_handler(struct port* port,
+bool port_set_interrupt_handler(struct si470x_port* port,
                                 gpio_pin_t pin,
                                 enum gpio_edge_type_t edge_type,
                                 InterruptHandler handler,
@@ -233,7 +236,7 @@ bool port_set_interrupt_handler(struct port* port,
 #endif
 }
 
-bool port_i2c_write(struct port* port, const void* data, size_t len) {
+bool port_i2c_write(struct si470x_port* port, const void* data, size_t len) {
   if (port->i2c_fd < 0)
     return false;
   int bytes_written = write(port->i2c_fd, data, len);
@@ -242,7 +245,7 @@ bool port_i2c_write(struct port* port, const void* data, size_t len) {
   return bytes_written == (int)len;
 }
 
-bool port_i2c_read(struct port* port, void* data, size_t len) {
+bool port_i2c_read(struct si470x_port* port, void* data, size_t len) {
   if (port->i2c_fd < 0)
     return false;
   int bytes_read = read(port->i2c_fd, data, len);
