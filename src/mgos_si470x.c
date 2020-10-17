@@ -118,7 +118,7 @@ struct si470x* mgos_si470x_get_device(int i2c_bus_no) {
   if (s_devices[i2c_bus_no] == NULL) {
     switch (i2c_bus_no) {
       case 0: {
-        const struct si470x_config config = {
+        const struct si470x_config_t config = {
             .region = parse_region(mgos_sys_config_get_si470x_region()),
             .advanced_ps_decoding = mgos_sys_config_get_si470x_advanced_ps(),
             .gpio2_int_pin = mgos_sys_config_get_si470x_gpio2_int_gpio(),
@@ -129,7 +129,7 @@ struct si470x* mgos_si470x_get_device(int i2c_bus_no) {
       } break;
 #if NUM_BUSES == 2
       case 1: {
-        const struct si470x_config config = {
+        const struct si470x_config_t config = {
             .region = parse_region(mgos_sys_config_get_si470x1_region()),
             .advanced_ps_decoding = mgos_sys_config_get_si470x1_advanced_ps(),
             .gpio2_int_pin = mgos_sys_config_get_si470x1_gpio2_int_gpio(),
@@ -148,7 +148,7 @@ struct si470x* mgos_si470x_get_global(void) {
   return mgos_si470x_get_device(0);
 }
 
-struct si470x* mgos_si470x_create(const struct si470x_config* config) {
+struct si470x* mgos_si470x_create(const struct si470x_config_t* config) {
   if (!g_library_initialized) {
     LOG(LL_ERROR, ("The si470x library was not initialized. Is it disabled?"));
     return NULL;

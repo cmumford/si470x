@@ -382,7 +382,7 @@ bool power_off(struct si470x* device) {
 /*vvvvvvvvvv PUBLIC FUNCTIONS *vvvvvvvvv*/
 /****************************************/
 
-struct si470x* si470x_create(const struct si470x_config* config) {
+struct si470x* si470x_create(const struct si470x_config_t* config) {
   struct si470x* device = (struct si470x*)calloc(1, sizeof(struct si470x));
   if (device == NULL) {
     return NULL;

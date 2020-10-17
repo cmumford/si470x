@@ -64,7 +64,7 @@ struct si470x* mgos_si470x_get_global(void);
  *
  * Returns opaque handle (NULL if an error occurred).
  */
-struct si470x* mgos_si470x_create(const struct si470x_config* config);
+struct si470x* mgos_si470x_create(const struct si470x_config_t* config);
 
 /**
  * Register a function to be called with new RDS data has been decoded.

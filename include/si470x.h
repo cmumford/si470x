@@ -70,7 +70,7 @@ enum si470x_region_t {
 /**
  * Configuration parameter when creating Si470X device connection.
  */
-struct si470x_config {
+struct si470x_config_t {
   enum si470x_region_t region;  ///< The broadcast region.
   bool advanced_ps_decoding;    ///< Algorithm when decoding PS text.
   /**
@@ -124,7 +124,7 @@ struct si470x_port;
  *
  * Returns opaque handle (NULL if an error occurred).
  */
-struct si470x* si470x_create(const struct si470x_config* config);
+struct si470x* si470x_create(const struct si470x_config_t* config);
 
 /**
  * Register a function to be called with new RDS data has been decoded.

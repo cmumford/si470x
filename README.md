@@ -66,7 +66,7 @@ port that uses [wiringPi](http://wiringpi.com) for Raspberry Pi.
 #include <si470x.h>
 
 // These are all wiringPi pin numbers. See http://wiringpi.com/pins/
-const struct si470x_config device_config = {
+const struct si470x_config_t device_config = {
     .region = REGION_US,
     .advanced_ps_decoding = true,
     .gpio2_int_pin = 5,  // GPIO5
