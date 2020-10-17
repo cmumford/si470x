@@ -43,7 +43,7 @@
 static bool g_library_initialized = false;
 static struct si470x* s_devices[NUM_BUSES];
 
-static enum si470x_region parse_region(const char* region) {
+static enum si470x_region_t parse_region(const char* region) {
 #if 0
   if (!stricmp(region, "europe"))
     return REGION_EUROPE;

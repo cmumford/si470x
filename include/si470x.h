@@ -60,7 +60,7 @@ typedef void (*RDSChangedFunc)(void*);
 /**
  * The broadcast region.
  */
-enum si470x_region {
+enum si470x_region_t {
   REGION_US,         ///< United States.
   REGION_EUROPE,     ///< Europe.
   REGION_AUSTRALIA,  ///< Australia.
@@ -71,8 +71,8 @@ enum si470x_region {
  * Configuration parameter when creating Si470X device connection.
  */
 struct si470x_config {
-  enum si470x_region region;  ///< The broadcast region.
-  bool advanced_ps_decoding;  ///< Algorithm when decoding PS text.
+  enum si470x_region_t region;  ///< The broadcast region.
+  bool advanced_ps_decoding;    ///< Algorithm when decoding PS text.
   /**
    * The pin connected to the Si470X's GPIO2 interrupt pin.
    *
