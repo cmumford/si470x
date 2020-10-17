@@ -60,7 +60,7 @@ static gpio_mode_t xlate_pin_mode(enum gpio_pin_mode_t mode) {
   return GPIO_MODE_INPUT;
 }
 
-static int xlate_ttl_level(enum ttl_level level) {
+static int xlate_ttl_level(enum gpio_ttl_level_t level) {
   switch (level) {
     case TTL_HIGH:
       return 1;
@@ -227,7 +227,7 @@ void port_set_pin_mode(struct port* port,
 
 void port_digital_write(struct port* port,
                         gpio_pin_t pin,
-                        enum ttl_level level) {
+                        enum gpio_ttl_level_t level) {
   UNUSED(port);
   gpio_set_level(pin, xlate_ttl_level(level));
 }

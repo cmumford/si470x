@@ -38,7 +38,7 @@ typedef uint16_t gpio_pin_t;
 
 enum gpio_pin_mode_t { PIN_MODE_INPUT, PIN_MODE_OUTPUT };
 
-enum ttl_level { TTL_HIGH, TTL_LOW };
+enum gpio_ttl_level_t { TTL_HIGH, TTL_LOW };
 
 enum edge_type { EDGE_TYPE_FALLING, EDGE_TYPE_RISING, EDGE_TYPE_BOTH };
 
@@ -109,7 +109,7 @@ void port_set_pin_mode(struct port* port,
  */
 void port_digital_write(struct port* port,
                         gpio_pin_t pin,
-                        enum ttl_level level);
+                        enum gpio_ttl_level_t level);
 
 /**
  * Set the interrupt handler for the specified pin
