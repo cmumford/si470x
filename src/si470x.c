@@ -383,18 +383,17 @@ bool power_off(struct si470x_t* device) {
 /****************************************/
 
 struct si470x_t* si470x_create(const struct si470x_config_t* config) {
+  if (!config || !config->port)
+    return NULL;
   struct si470x_t* device =
       (struct si470x_t*)calloc(1, sizeof(struct si470x_t));
-  if (device == NULL) {
+  if (!device)
     return NULL;
-  }
 
   device->port = config->port;
 
 #if !defined(MGOS)
   device->reset_pin = config->reset_pin;
-  device->sdio_pin = config->i2c.sdio_pin;
-  device->sclk_pin = config->i2c.sclk_pin;
 #endif
   device->gpio2_int_pin = config->gpio2_int_pin;
   device->region = config->region;
@@ -412,7 +411,7 @@ struct si470x_t* si470x_create(const struct si470x_config_t* config) {
 
 #if !defined(MGOS)
   if (!reset_device(device->port, device->reset_pin, device->gpio2_int_pin,
-                    device->sdio_pin)) {
+                    device->i2c.sdio_pin)) {
     free(device);
     return NULL;
   }

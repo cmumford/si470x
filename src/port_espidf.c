@@ -48,7 +48,7 @@ struct si470x_port_t {
   } gpio;
 };
 
-static struct si470x_port_t* g_port;
+static struct si470x_port_t* g_port = NULL;
 
 static gpio_mode_t xlate_pin_mode(enum gpio_pin_mode_t mode) {
   switch (mode) {
@@ -149,7 +149,7 @@ static void IRAM_ATTR gpio_isr_handler(void* arg) {
 }
 
 static esp_err_t install_isr_service(struct si470x_port_t* port,
-                                     uint16_t pin,
+                                     gpio_pin_t pin,
                                      enum gpio_edge_type_t edge_type) {
   const uint32_t pin_mask = 1 << pin;
 
@@ -173,20 +173,22 @@ static esp_err_t install_isr_service(struct si470x_port_t* port,
 }
 
 struct si470x_port_t* port_create(bool noop) {
-  struct si470x_port_t* port =
-      (struct si470x_port_t*)calloc(1, sizeof(struct si470x_port_t));
+  assert(g_port == g_port);
 
-  port->noop = noop;
-  port->i2c.conf.mode = I2C_MODE_MASTER;
+  g_port = (struct si470x_port_t*)calloc(1, sizeof(struct si470x_port_t));
+  if (g_port == NULL)
+    return NULL;
+
+  g_port->noop = noop;
+  g_port->i2c.conf.mode = I2C_MODE_MASTER;
   // Max of 1MHz recommended by:
   // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/i2c.html#_CPPv4N12i2c_config_t9clk_speedE
-  port->i2c.conf.master.clk_speed = 1000000;
-  port->i2c.conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-  port->i2c.conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+  g_port->i2c.conf.master.clk_speed = 1000000;
+  g_port->i2c.conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+  g_port->i2c.conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+  g_port->i2c.init_err = ESP_FAIL;
 
-  g_port = port;
-
-  return port;
+  return g_port;
 }
 
 void port_delete(struct si470x_port_t* port) {

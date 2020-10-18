@@ -26,12 +26,11 @@
  * I2C must be disabled before calling this function.
  */
 bool reset_device(struct si470x_port_t* port,
-                  const int si470x_rst_pin,
-                  const int si470x_gpio2_int_pin,
-                  const int i2c_sda_pin) {
-  if (port_i2c_enabled(port)) {
+                  const gpio_pin_t si470x_rst_pin,
+                  const gpio_pin_t si470x_gpio2_int_pin,
+                  const gpio_pin_t i2c_sda_pin) {
+  if (port_i2c_enabled(port))
     return false;
-  }
   if (!port_enable_gpio(port))
     return false;
   port_set_pin_mode(port, si470x_rst_pin, PIN_MODE_OUTPUT);

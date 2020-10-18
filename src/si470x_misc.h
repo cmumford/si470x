@@ -160,7 +160,7 @@ struct si470x_t {
    *
    * A value of -1 disables interrupts and RDS is disabled.
    */
-  int gpio2_int_pin;
+  gpio_pin_t gpio2_int_pin;
 
   struct {
     /**
@@ -187,9 +187,7 @@ struct si470x_t {
 #endif
 
 #if !defined(MGOS)
-  int reset_pin;          ///< The GPIO pin connected to the Si470X RST pin.
-  int sdio_pin;           ///< The serial data in/data out pin (I2C).
-  int sclk_pin;           ///< The serial clock pin (I2C).
+  gpio_pin_t reset_pin;   ///< The GPIO pin connected to the Si470X RST pin.
   pthread_mutex_t mutex;  ///< Synchronize access to this data structure.
 #endif
 };
@@ -198,9 +196,9 @@ struct si470x_t {
  * Reset the Si470X device.
  */
 bool reset_device(struct si470x_port_t* port,
-                  const int si470x_rst_pin,
-                  const int si470x_gpio2_int_pin,
-                  const int i2c_sda_pin);
+                  const gpio_pin_t si470x_rst_pin,
+                  const gpio_pin_t si470x_gpio2_int_pin,
+                  const gpio_pin_t i2c_sda_pin);
 
 /**
  * Return the device type for given device.

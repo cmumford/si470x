@@ -72,6 +72,7 @@ enum si470x_region_t {
  * Configuration parameter when creating Si470X device connection.
  */
 struct si470x_config_t {
+  struct si470x_port_t* port;   ///< The platform porting layer.
   enum si470x_region_t region;  ///< The broadcast region.
   bool advanced_ps_decoding;    ///< Algorithm when decoding PS text.
   /**
@@ -82,8 +83,6 @@ struct si470x_config_t {
   gpio_pin_t gpio2_int_pin;
   gpio_pin_t reset_pin;            ///< The pin used to reset the tuner.
   struct si470x_i2c_params_t i2c;  ///< Device I2C settings.
-
-  struct si470x_port_t* port;  ///< The platform porting layer.
 };
 
 /**
