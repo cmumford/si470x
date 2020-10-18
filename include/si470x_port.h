@@ -26,11 +26,19 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP8266)
+#define PLATFORM_ESPIDF
+#endif
+
+#if defined(PLATFORM_ESPIDF)
+#include <driver/gpio.h>  // To get gpio_num_t.
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP8266)
+#if defined(PLATFORM_ESPIDF)
 typedef gpio_num_t gpio_pin_t;
 #elif defined(HAVE_WIRING_PI)
 // When using wiringPi, GPIO pin values are not GPIO,
