@@ -14,7 +14,7 @@
 
 #include <si470x_port.h>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 
 #include <driver/gpio.h>
 #include <driver/i2c.h>
@@ -89,9 +89,10 @@ static gpio_int_type_t xlate_edge_type(enum gpio_edge_type_t type) {
 static esp_err_t i2c_master_read_slave(struct si470x_port_t* port,
                                        uint8_t* data_rd,
                                        size_t size) {
-  if (size == 0) {
+  ESP_LOGV(TAG, "reading %u bytes from slave 0x%x", size,
+           port->i2c.params.slave_addr);
+  if (size == 0)
     return ESP_OK;
-  }
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
   i2c_master_write_byte(
@@ -104,12 +105,18 @@ static esp_err_t i2c_master_read_slave(struct si470x_port_t* port,
   esp_err_t ret =
       i2c_master_cmd_begin(port->i2c.port, cmd, 1000 / portTICK_RATE_MS);
   i2c_cmd_link_delete(cmd);
+  if (ret == ESP_OK)
+    ESP_LOGV(TAG, "Successfully read %d bytes", size);
+  else
+    ESP_LOGE(TAG, "Failure reading %d bytes: %s", size, esp_err_to_name(ret));
   return ret;
 }
 
 static esp_err_t i2c_master_write_slave(struct si470x_port_t* port,
                                         const uint8_t* data_wr,
                                         size_t size) {
+  ESP_LOGV(TAG, "reading %u bytes from slave 0x%x", size,
+           port->i2c.params.slave_addr);
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
   i2c_master_write_byte(
@@ -124,27 +131,27 @@ static esp_err_t i2c_master_write_slave(struct si470x_port_t* port,
 }
 
 static esp_err_t i2c_master_init(struct si470x_port_t* port) {
-  if (port->i2c.init_called)
+  ESP_LOGV(TAG, "Initializing I2C master");
+  if (port->i2c.init_called) {
+    ESP_LOGW(TAG, "I2C master already initialized");
     return port->i2c.init_err;
+  }
 
   port->i2c.init_called = true;
 
   port->i2c.init_err = i2c_param_config(port->i2c.port, &port->i2c.conf);
   if (port->i2c.init_err != ESP_OK) {
-    ESP_LOGE(TAG, "i2c_param_config: %s\n",
-             esp_err_to_name(port->i2c.init_err));
+    ESP_LOGE(TAG, "i2c_param_config: %s", esp_err_to_name(port->i2c.init_err));
     return port->i2c.init_err;
   }
 
-  port->i2c.init_err = ESP_OK;
-  return port->i2c.init_err;
   port->i2c.init_err = i2c_driver_install(port->i2c.port, port->i2c.conf.mode,
                                           I2C_MASTER_RX_BUF_DISABLE,
                                           I2C_MASTER_TX_BUF_DISABLE, 0);
   if (port->i2c.init_err == ESP_OK)
     ESP_LOGD(TAG, "I2C enabled on port %d", port->i2c.port);
   else
-    ESP_LOGE(TAG, "i2c_driver_install failed: %s\n",
+    ESP_LOGE(TAG, "i2c_driver_install failed: %s",
              esp_err_to_name(port->i2c.init_err));
 
   return port->i2c.init_err;
@@ -155,7 +162,7 @@ static void gpio_task_handler(void* arg) {
   while (true) {
     uint32_t io_num;
     if (xQueueReceive(g_port->gpio.event_queue, &io_num, portMAX_DELAY)) {
-      ESP_LOGE(TAG, "GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
+      ESP_LOGV(TAG, "GPIO[%d] intr, val: %d", io_num, gpio_get_level(io_num));
       handler(g_port->gpio.isr_handler_arg);
     }
   }
@@ -169,7 +176,9 @@ static void IRAM_ATTR gpio_isr_handler(void* arg) {
 
 static esp_err_t install_isr_service(struct si470x_port_t* port,
                                      gpio_pin_t pin,
-                                     enum gpio_edge_type_t edge_type) {
+                                     enum gpio_edge_type_t edge_type,
+                                     InterruptHandler handler) {
+  ESP_LOGI(TAG, "Installing ISR service");
   const uint32_t pin_mask = 1 << pin;
 
   const gpio_config_t io_conf = {
@@ -181,12 +190,14 @@ static esp_err_t install_isr_service(struct si470x_port_t* port,
   };
 
   esp_err_t err;
-  if ((err = gpio_config(&io_conf)) != ESP_OK)
+  if ((err = gpio_config(&io_conf)) != ESP_OK) {
+    ESP_LOGE(TAG, "Unable to config GPIO: %s", esp_err_to_name(err));
     return err;
+  }
 
   port->gpio.event_queue = xQueueCreate(10, sizeof(uint32_t));
 
-  xTaskCreate(gpio_task_handler, "gpio_task_isr", 2048, NULL, 10, NULL);
+  xTaskCreate(gpio_task_handler, "gpio_task_isr", 2048, handler, 10, NULL);
 
   return gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
 }
@@ -206,6 +217,8 @@ struct si470x_port_t* port_create(bool noop) {
   g_port->i2c.conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
   g_port->i2c.conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
   g_port->i2c.init_err = ESP_FAIL;
+
+  ESP_LOGD(TAG, "Created port");
 
   return g_port;
 }
@@ -273,7 +286,7 @@ bool port_set_interrupt_handler(struct si470x_port_t* port,
   port->gpio.isr_handler_arg = user_data;
 
   if (!port->gpio.isr_service_installed) {
-    if (install_isr_service(port, pin, edge_type) != ESP_OK)
+    if (install_isr_service(port, pin, edge_type, handler) != ESP_OK)
       return false;
     port->gpio.isr_service_installed = true;
   }
