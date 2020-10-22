@@ -14,8 +14,11 @@
 
 #include <si470x_port.h>
 
+#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
+
 #include <driver/gpio.h>
 #include <driver/i2c.h>
+#include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
@@ -27,6 +30,7 @@
 
 #define ESP_INTR_FLAG_DEFAULT 0
 
+const char TAG[] = "esp-idf port";
 const bool ACK_CHECK_EN = true;  ///< I2C master will check ack from slave.
 const size_t I2C_MASTER_TX_BUF_DISABLE = 0;
 const size_t I2C_MASTER_RX_BUF_DISABLE = 0;
@@ -37,7 +41,7 @@ struct si470x_port_t {
     i2c_config_t conf;                  ///< ESP-IDF I2C config params.
     i2c_port_t port;                    ///< The I2C bus number.
     struct si470x_i2c_params_t params;  ///< Si470X I2C config params.
-    bool enabled;                       ///< Has I2C been initialized?
+    bool init_called;                   ///< Has I2C been initialized?
     esp_err_t init_err;
   } i2c;
   struct {
@@ -120,14 +124,29 @@ static esp_err_t i2c_master_write_slave(struct si470x_port_t* port,
 }
 
 static esp_err_t i2c_master_init(struct si470x_port_t* port) {
-  if (port->i2c.enabled)
+  if (port->i2c.init_called)
     return port->i2c.init_err;
 
-  i2c_param_config(port->i2c.port, &port->i2c.conf);
+  port->i2c.init_called = true;
+
+  port->i2c.init_err = i2c_param_config(port->i2c.port, &port->i2c.conf);
+  if (port->i2c.init_err != ESP_OK) {
+    ESP_LOGE(TAG, "i2c_param_config: %s\n",
+             esp_err_to_name(port->i2c.init_err));
+    return port->i2c.init_err;
+  }
+
+  port->i2c.init_err = ESP_OK;
+  return port->i2c.init_err;
   port->i2c.init_err = i2c_driver_install(port->i2c.port, port->i2c.conf.mode,
                                           I2C_MASTER_RX_BUF_DISABLE,
                                           I2C_MASTER_TX_BUF_DISABLE, 0);
-  port->i2c.enabled = true;
+  if (port->i2c.init_err == ESP_OK)
+    ESP_LOGD(TAG, "I2C enabled on port %d", port->i2c.port);
+  else
+    ESP_LOGE(TAG, "i2c_driver_install failed: %s\n",
+             esp_err_to_name(port->i2c.init_err));
+
   return port->i2c.init_err;
 }
 
@@ -136,7 +155,7 @@ static void gpio_task_handler(void* arg) {
   while (true) {
     uint32_t io_num;
     if (xQueueReceive(g_port->gpio.event_queue, &io_num, portMAX_DELAY)) {
-      printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
+      ESP_LOGE(TAG, "GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
       handler(g_port->gpio.isr_handler_arg);
     }
   }
@@ -183,7 +202,7 @@ struct si470x_port_t* port_create(bool noop) {
   g_port->i2c.conf.mode = I2C_MODE_MASTER;
   // Max of 1MHz recommended by:
   // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/i2c.html#_CPPv4N12i2c_config_t9clk_speedE
-  g_port->i2c.conf.master.clk_speed = 1000000;
+  g_port->i2c.conf.master.clk_speed = 100000;
   g_port->i2c.conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
   g_port->i2c.conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
   g_port->i2c.init_err = ESP_FAIL;
@@ -242,7 +261,7 @@ bool port_enable_i2c(struct si470x_port_t* port,
 }
 
 bool port_i2c_enabled(struct si470x_port_t* port) {
-  return port->i2c.enabled && port->i2c.init_err == ESP_OK;
+  return port->i2c.init_called && port->i2c.init_err == ESP_OK;
 }
 
 bool port_set_interrupt_handler(struct si470x_port_t* port,
