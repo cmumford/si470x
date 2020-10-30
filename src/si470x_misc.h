@@ -26,6 +26,19 @@
 #include <pthread.h>
 #endif
 
+#if defined(PLATFORMIO)
+#define USE_FREERTOS_SEMAPHORE
+#elif defined(MGOS)
+// MGOS is single threaded - no need to synchronize.
+#else
+#define USE_PTHREADS
+#endif
+
+#if defined(USE_FREERTOS_SEMAPHORE)
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
+#endif
+
 #define SET_BITS(value, bits) (value |= (bits))
 #define CLEAR_BITS(value, bits) (value &= ~(bits))
 
@@ -187,7 +200,11 @@ struct si470x_t {
 #endif
 
 #if !defined(MGOS)
-  gpio_pin_t reset_pin;   ///< The GPIO pin connected to the Si470X RST pin.
+  gpio_pin_t reset_pin;  ///< The GPIO pin connected to the Si470X RST pin.
+#endif
+#if defined(USE_FREERTOS_SEMAPHORE)
+  SemaphoreHandle_t xSemaphore;
+#elif defined(USE_PTHREADS)
   pthread_mutex_t mutex;  ///< Synchronize access to this data structure.
 #endif
 };

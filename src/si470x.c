@@ -48,7 +48,9 @@ struct si470x_t* g_device;
 #endif  // defined(HAVE_wIRING_PI)
 
 static void lock_mutex(struct si470x_t* device) {
-#if defined(HAVE_WIRING_PI)
+#if defined(USE_FREERTOS_SEMAPHORE)
+  xSemaphoreTake(device->xSemaphore, portMAX_DELAY);
+#elif defined(USE_PTHREADS)
   pthread_mutex_lock(&device->mutex);
 #else
   UNUSED(device);
@@ -56,7 +58,9 @@ static void lock_mutex(struct si470x_t* device) {
 }
 
 static void unlock_mutex(struct si470x_t* device) {
-#if defined(HAVE_WIRING_PI)
+#if defined(USE_FREERTOS_SEMAPHORE)
+  xSemaphoreGive(device->xSemaphore);
+#elif defined(USE_PTHREADS)
   pthread_mutex_unlock(&device->mutex);
 #else
   UNUSED(device);
@@ -405,6 +409,10 @@ struct si470x_t* si470x_create(const struct si470x_config_t* config) {
       .advanced_ps_decoding = config->advanced_ps_decoding,
       .rds_data = &device->rds,
   };
+
+#if defined(USE_FREERTOS_SEMAPHORE)
+  device->xSemaphore = xSemaphoreCreateMutex();
+#endif
 
   device->decoder = rds_decoder_create(&decoder_config);
   rds_decoder_reset(device->decoder);

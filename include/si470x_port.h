@@ -63,8 +63,8 @@ struct si470x_port_t;
  */
 struct si470x_i2c_params_t {
   int bus;  ///< The I2C bus (or port) to which the Si470X is connected.
-  gpio_pin_t sdio_pin;  ///< The I2C SDA pin.
-  gpio_pin_t sclk_pin;  ///< The I2C SCK pin.
+  gpio_pin_t sdio_pin;  ///< The SDA (AKA SDIO) pin.
+  gpio_pin_t sclk_pin;  ///< The SCK pin.
   uint16_t slave_addr;  ///< The Si470x slave address (usually 0x10);
 };
 
