@@ -26,7 +26,7 @@
 #include <pthread.h>
 #endif
 
-#if defined(PLATFORMIO)
+#if defined(ESP_PLATFORM)
 #define USE_FREERTOS_SEMAPHORE
 #elif defined(MGOS)
 // MGOS is single threaded - no need to synchronize.
