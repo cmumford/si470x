@@ -22,11 +22,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
-
-#define UNUSED(expr) \
-  do {               \
-    (void)(expr);    \
-  } while (0)
+#include "si470x_misc.h"
 
 #define ESP_INTR_FLAG_DEFAULT 0
 

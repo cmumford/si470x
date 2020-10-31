@@ -39,6 +39,10 @@
 #include <freertos/semphr.h>
 #endif
 
+#if !defined(ARRAY_SIZE)
+#define ARRAY_SIZE(ARRAY) (sizeof(ARRAY) / sizeof((ARRAY)[0]))
+#endif
+
 #define SET_BITS(value, bits) (value |= (bits))
 #define CLEAR_BITS(value, bits) (value &= ~(bits))
 

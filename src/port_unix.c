@@ -31,11 +31,6 @@
 #include <wiringPi.h>
 #endif
 
-#define UNUSED(expr) \
-  do {               \
-    (void)(expr);    \
-  } while (0)
-
 struct si470x_port_t {
   bool noop;
   struct {

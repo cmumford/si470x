@@ -17,11 +17,6 @@
 #include <mgos.h>
 #include <mgos_i2c.h>
 
-#define UNUSED(expr) \
-  do {               \
-    (void)(expr);    \
-  } while (0)
-
 struct interrupt_handler_data {
   InterruptHandler handler;
   void* user_data;
