@@ -30,6 +30,7 @@
 #if defined(HAVE_WIRING_PI)
 #include <wiringPi.h>
 #endif
+#include "si470x_misc.h"
 
 struct si470x_port_t {
   bool noop;
