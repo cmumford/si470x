@@ -108,6 +108,13 @@ static bool update_registers(const struct si470x_t* device) {
   return port_i2c_write(device->port, registers, sizeof(registers));
 }
 
+static void clear_ephemeral_rds_data(struct si470x_t* device) {
+  CLEAR_BITS(device->rds.valid_values,
+             RDS_AF | RDS_CLOCK | RDS_EWS | RDS_FBT | RDS_MC | RDS_PIC |
+                 RDS_PI_CODE | RDS_PTY | RDS_SLC | RDS_TDC | RDS_TA_CODE |
+                 RDS_TP_CODE | RDS_MS | RDS_EON);
+}
+
 /**
  * The scanning/tune complete interrupt handler.
  *
@@ -142,6 +149,8 @@ static void stc_interrupt_handler(void* user_data) {
       !(device->shadow_reg[STATUSRSSI] & RDSR)) {
     goto DONE;
   }
+
+  clear_ephemeral_rds_data(device);
 
   const struct rds_blocks blocks = {
       {device->shadow_reg[RDSA], get_block_a_errors(device)},
