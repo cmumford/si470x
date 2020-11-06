@@ -178,11 +178,11 @@ static esp_err_t install_isr_service(struct si470x_port_t* port,
   const uint32_t pin_mask = 1 << pin;
 
   const gpio_config_t io_conf = {
-      .intr_type = xlate_edge_type(edge_type),
-      .mode = GPIO_MODE_INPUT,
       .pin_bit_mask = pin_mask,
-      .pull_down_en = 0,
-      .pull_up_en = 1,
+      .mode = GPIO_MODE_INPUT,
+      .pull_up_en = GPIO_PULLUP_ENABLE,
+      .pull_down_en = GPIO_PULLDOWN_DISABLE,
+      .intr_type = xlate_edge_type(edge_type),
   };
 
   esp_err_t err;
