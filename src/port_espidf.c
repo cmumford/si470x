@@ -252,7 +252,11 @@ void port_set_pin_mode(struct si470x_port_t* port,
                        gpio_pin_t pin,
                        enum gpio_pin_mode_t mode) {
   UNUSED(port);
-  gpio_set_direction(pin, xlate_pin_mode(mode));
+  esp_err_t err = gpio_set_direction(pin, xlate_pin_mode(mode));
+  if (err == OK)
+    ESP_LOGV(TAG, "Set mode for pin %d.", pin);
+  else
+    ESP_LOGE(TAG, "Can't set mode for pin %d.", pin);
 }
 
 void port_digital_write(struct si470x_port_t* port,
@@ -268,6 +272,10 @@ bool port_enable_i2c(struct si470x_port_t* port,
   port->i2c.params = *i2c_params;
   port->i2c.conf.sda_io_num = i2c_params->sdio_pin;
   port->i2c.conf.scl_io_num = i2c_params->sclk_pin;
+
+  ESP_LOGI(TAG, "I2C enabled on port %d, SDA:%d, SCL:%d, slave:0x%x.",
+           port->i2c.params.bus, port->i2c.params.sdio_pin,
+           port->i2c.params.sclk_pin, port->i2c.params.slave_addr);
 
   return i2c_master_init(port) == ESP_OK;
 }
