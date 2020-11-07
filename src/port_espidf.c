@@ -193,7 +193,10 @@ static esp_err_t install_isr_service(struct si470x_port_t* port,
 
   port->gpio.event_queue = xQueueCreate(10, sizeof(uint32_t));
 
-  xTaskCreate(gpio_task_handler, "gpio_task_isr", 2048, handler, 10, NULL);
+  BaseType_t task =
+      xTaskCreate(gpio_task_handler, "gpio_task_isr", 2048, handler, 10, NULL);
+  if (task != pdPASS)
+    return ESP_FAIL;
 
   return gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
 }
