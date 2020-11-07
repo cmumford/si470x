@@ -28,6 +28,7 @@
 
 #if defined(ESP_PLATFORM)
 #include <driver/gpio.h>  // To get gpio_num_t.
+#include <driver/i2c.h>   // To get i2c_port_t.
 #endif
 
 #ifdef __cplusplus
@@ -36,12 +37,15 @@ extern "C" {
 
 #if defined(ESP_PLATFORM)
 typedef gpio_num_t gpio_pin_t;
+typedef i2c_port_t i2c_bus_t;
 #elif defined(HAVE_WIRING_PI)
 // When using wiringPi, GPIO pin values are not GPIO,
 // they are wiringPi values. See http://wiringpi.com/pins/
 typedef int gpio_pin_t;
+typedef int i2c_bus_t;
 #else
 typedef int16_t gpio_pin_t;
+typedef int i2c_bus_t;
 #endif
 
 enum gpio_pin_mode_t { PIN_MODE_INPUT, PIN_MODE_OUTPUT };
@@ -62,7 +66,7 @@ struct si470x_port_t;
  *       the SDA/SCK pins. On this platform these two members are not used.
  */
 struct si470x_i2c_params_t {
-  int bus;  ///< The I2C bus (or port) to which the Si470X is connected.
+  i2c_bus_t bus;  ///< The I2C bus (or port) to which the Si470X is connected.
   gpio_pin_t sdio_pin;  ///< The SDA (AKA SDIO) pin.
   gpio_pin_t sclk_pin;  ///< The SCK pin.
   uint16_t slave_addr;  ///< The Si470x slave address (usually 0x10);
