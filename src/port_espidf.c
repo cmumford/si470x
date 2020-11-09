@@ -35,11 +35,8 @@ struct si470x_port_t {
   bool noop;  ///< No-op setting.
   SemaphoreHandle_t i2c_mutex;
   struct {
-    i2c_config_t conf;                  ///< ESP-IDF I2C config params.
-    i2c_port_t port;                    ///< The I2C bus number.
-    struct si470x_i2c_params_t params;  ///< Si470X I2C config params.
-    bool init_called;                   ///< Has I2C been initialized?
-    esp_err_t init_err;
+    bool init_called;    ///< Has I2C been initialized?
+    esp_err_t init_err;  ///< The first error status when initializing I2C.
   } i2c;
   struct {
     bool isr_service_installed;
@@ -83,26 +80,28 @@ static gpio_int_type_t xlate_edge_type(enum gpio_edge_type_t type) {
   return GPIO_INTR_NEGEDGE;
 }
 
-static esp_err_t i2c_master_read_slave(struct si470x_port_t* port,
-                                       uint8_t* data_rd,
-                                       size_t size) {
+static esp_err_t i2c_master_read_slave(
+    struct si470x_port_t* port,
+    const struct si470x_i2c_params_t* i2c_params,
+    uint8_t* data_rd,
+    size_t size) {
   ESP_LOGV(TAG, "reading %u bytes from slave 0x%x", size,
-           port->i2c.params.slave_addr);
+           i2c_params->slave_addr);
   if (size == 0)
     return ESP_OK;
   if (port->i2c_mutex)
     xSemaphoreTake(port->i2c_mutex, portMAX_DELAY);
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
-  i2c_master_write_byte(
-      cmd, (port->i2c.params.slave_addr << 1) | I2C_MASTER_READ, ACK_CHECK_EN);
+  i2c_master_write_byte(cmd, (i2c_params->slave_addr << 1) | I2C_MASTER_READ,
+                        ACK_CHECK_EN);
   if (size > 1) {
     i2c_master_read(cmd, data_rd, size - 1, I2C_MASTER_ACK);
   }
   i2c_master_read_byte(cmd, data_rd + size - 1, I2C_MASTER_NACK);
   i2c_master_stop(cmd);
   esp_err_t ret =
-      i2c_master_cmd_begin(port->i2c.port, cmd, 1000 / portTICK_RATE_MS);
+      i2c_master_cmd_begin(i2c_params->bus, cmd, 1000 / portTICK_RATE_MS);
   i2c_cmd_link_delete(cmd);
   if (port->i2c_mutex)
     xSemaphoreGive(port->i2c_mutex);
@@ -113,29 +112,32 @@ static esp_err_t i2c_master_read_slave(struct si470x_port_t* port,
   return ret;
 }
 
-static esp_err_t i2c_master_write_slave(struct si470x_port_t* port,
-                                        const uint8_t* data_wr,
-                                        size_t size) {
+static esp_err_t i2c_master_write_slave(
+    struct si470x_port_t* port,
+    const struct si470x_i2c_params_t* i2c_params,
+    const uint8_t* data_wr,
+    size_t size) {
   ESP_LOGV(TAG, "reading %u bytes from slave 0x%x", size,
-           port->i2c.params.slave_addr);
+           i2c_params->slave_addr);
   if (port->i2c_mutex)
     xSemaphoreTake(port->i2c_mutex, portMAX_DELAY);
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
-  i2c_master_write_byte(
-      cmd, (port->i2c.params.slave_addr << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
+  i2c_master_write_byte(cmd, (i2c_params->slave_addr << 1) | I2C_MASTER_WRITE,
+                        ACK_CHECK_EN);
   // In newer IDF's data is const.
   i2c_master_write(cmd, (uint8_t*)(data_wr), size, ACK_CHECK_EN);
   i2c_master_stop(cmd);
   esp_err_t ret =
-      i2c_master_cmd_begin(port->i2c.port, cmd, 1000 / portTICK_RATE_MS);
+      i2c_master_cmd_begin(i2c_params->bus, cmd, 1000 / portTICK_RATE_MS);
   i2c_cmd_link_delete(cmd);
   if (port->i2c_mutex)
     xSemaphoreGive(port->i2c_mutex);
   return ret;
 }
 
-static esp_err_t i2c_master_init(struct si470x_port_t* port) {
+static esp_err_t i2c_master_init(struct si470x_port_t* port,
+                                 const struct si470x_i2c_params_t* i2c_params) {
   ESP_LOGV(TAG, "Initializing I2C master");
   if (port->i2c.init_called) {
     ESP_LOGW(TAG, "I2C master already initialized");
@@ -144,17 +146,29 @@ static esp_err_t i2c_master_init(struct si470x_port_t* port) {
 
   port->i2c.init_called = true;
 
-  port->i2c.init_err = i2c_param_config(port->i2c.port, &port->i2c.conf);
+  const i2c_config_t config = {
+      .mode = I2C_MODE_MASTER,
+      .sda_io_num = i2c_params->sdio_pin,
+      .scl_io_num = i2c_params->sclk_pin,
+      .sda_pullup_en = GPIO_PULLUP_DISABLE,
+      .scl_pullup_en = GPIO_PULLUP_DISABLE,
+      .master =
+          {// Max of 1MHz recommended by:
+           // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/i2c.html#_CPPv4N12i2c_config_t9clk_speedE
+           .clk_speed = 100000},
+  };
+
+  port->i2c.init_err = i2c_param_config(i2c_params->bus, &config);
   if (port->i2c.init_err != ESP_OK) {
     ESP_LOGE(TAG, "i2c_param_config: %s", esp_err_to_name(port->i2c.init_err));
     return port->i2c.init_err;
   }
 
-  port->i2c.init_err = i2c_driver_install(port->i2c.port, port->i2c.conf.mode,
+  port->i2c.init_err = i2c_driver_install(i2c_params->bus, I2C_MODE_MASTER,
                                           I2C_MASTER_RX_BUF_DISABLE,
                                           I2C_MASTER_TX_BUF_DISABLE, 0);
   if (port->i2c.init_err == ESP_OK)
-    ESP_LOGD(TAG, "I2C enabled on port %d", port->i2c.port);
+    ESP_LOGD(TAG, "I2C enabled on port %d", i2c_params->bus);
   else
     ESP_LOGE(TAG, "i2c_driver_install failed: %s",
              esp_err_to_name(port->i2c.init_err));
@@ -219,12 +233,6 @@ struct si470x_port_t* port_create(const struct si470x_port_params_t* config) {
 
   g_port->noop = config->noop;
   g_port->i2c_mutex = config->i2c_mutex;
-  g_port->i2c.conf.mode = I2C_MODE_MASTER;
-  // Max of 1MHz recommended by:
-  // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/i2c.html#_CPPv4N12i2c_config_t9clk_speedE
-  g_port->i2c.conf.master.clk_speed = 100000;
-  g_port->i2c.conf.sda_pullup_en = GPIO_PULLUP_DISABLE;
-  g_port->i2c.conf.scl_pullup_en = GPIO_PULLUP_DISABLE;
   g_port->i2c.init_err = ESP_FAIL;
 
   ESP_LOGD(TAG, "Created port");
@@ -278,16 +286,11 @@ void port_digital_write(struct si470x_port_t* port,
 
 bool port_enable_i2c(struct si470x_port_t* port,
                      const struct si470x_i2c_params_t* i2c_params) {
-  port->i2c.port = i2c_params->bus;
-  port->i2c.params = *i2c_params;
-  port->i2c.conf.sda_io_num = i2c_params->sdio_pin;
-  port->i2c.conf.scl_io_num = i2c_params->sclk_pin;
-
   ESP_LOGI(TAG, "I2C enabled on port %d, SDA:%d, SCL:%d, slave:0x%x.",
-           port->i2c.params.bus, port->i2c.params.sdio_pin,
-           port->i2c.params.sclk_pin, port->i2c.params.slave_addr);
+           i2c_params->bus, i2c_params->sdio_pin, i2c_params->sclk_pin,
+           i2c_params->slave_addr);
 
-  return i2c_master_init(port) == ESP_OK;
+  return i2c_master_init(port, i2c_params) == ESP_OK;
 }
 
 bool port_i2c_enabled(struct si470x_port_t* port) {
@@ -311,10 +314,16 @@ bool port_set_interrupt_handler(struct si470x_port_t* port,
   return gpio_isr_handler_add(pin, gpio_isr_handler, handler) == ESP_OK;
 }
 
-bool port_i2c_write(struct si470x_port_t* port, const void* data, size_t len) {
-  return i2c_master_write_slave(port, data, len) == ESP_OK;
+bool port_i2c_write(struct si470x_port_t* port,
+                    const struct si470x_i2c_params_t* i2c_params,
+                    const void* data,
+                    size_t len) {
+  return i2c_master_write_slave(port, i2c_params, data, len) == ESP_OK;
 }
 
-bool port_i2c_read(struct si470x_port_t* port, void* data, size_t len) {
-  return i2c_master_read_slave(port, data, len) == ESP_OK;
+bool port_i2c_read(struct si470x_port_t* port,
+                   const struct si470x_i2c_params_t* i2c_params,
+                   void* data,
+                   size_t len) {
+  return i2c_master_read_slave(port, i2c_params, data, len) == ESP_OK;
 }

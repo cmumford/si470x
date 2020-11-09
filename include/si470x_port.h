@@ -191,7 +191,10 @@ bool port_i2c_enabled(struct si470x_port_t* port);
  * @param data Pointer to the data to write.
  * @param len The number of bytes to write.
  */
-bool port_i2c_write(struct si470x_port_t* port, const void* data, size_t len);
+bool port_i2c_write(struct si470x_port_t* port,
+                    const struct si470x_i2c_params_t* i2c_params,
+                    const void* data,
+                    size_t len);
 
 /**
  * Read data from the I2C slave.
@@ -200,7 +203,10 @@ bool port_i2c_write(struct si470x_port_t* port, const void* data, size_t len);
  * @param data Pointer to the data to read to.
  * @param len The number of bytes to read.
  */
-bool port_i2c_read(struct si470x_port_t* port, void* data, size_t len);
+bool port_i2c_read(struct si470x_port_t* port,
+                   const struct si470x_i2c_params_t* i2c_params,
+                   void* data,
+                   size_t len);
 
 #ifdef __cplusplus
 }

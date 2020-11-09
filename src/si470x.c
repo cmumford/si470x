@@ -78,7 +78,8 @@ static bool read_registers(struct si470x_t* device) {
 #endif
 
   uint16_t registers[16];
-  if (!port_i2c_read(device->port, registers, sizeof(registers))) {
+  if (!port_i2c_read(device->port, &device->i2c, registers,
+                     sizeof(registers))) {
     return false;
   }
   int reg = 0xA;
@@ -105,7 +106,8 @@ static bool update_registers(const struct si470x_t* device) {
   for (size_t i = 0, idx = 0x02; idx <= 0x07; i++, idx++)
     registers[i] = SwapEndian(device->shadow_reg[idx]);
 
-  return port_i2c_write(device->port, registers, sizeof(registers));
+  return port_i2c_write(device->port, &device->i2c, registers,
+                        sizeof(registers));
 }
 
 static void clear_ephemeral_rds_data(struct si470x_t* device) {
