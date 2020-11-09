@@ -33,6 +33,7 @@ const size_t I2C_MASTER_RX_BUF_DISABLE = 0;
 
 struct si470x_port_t {
   bool noop;  ///< No-op setting.
+  SemaphoreHandle_t i2c_mutex;
   struct {
     i2c_config_t conf;                  ///< ESP-IDF I2C config params.
     i2c_port_t port;                    ///< The I2C bus number.
@@ -89,6 +90,8 @@ static esp_err_t i2c_master_read_slave(struct si470x_port_t* port,
            port->i2c.params.slave_addr);
   if (size == 0)
     return ESP_OK;
+  if (port->i2c_mutex)
+    xSemaphoreTake(port->i2c_mutex, portMAX_DELAY);
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
   i2c_master_write_byte(
@@ -101,6 +104,8 @@ static esp_err_t i2c_master_read_slave(struct si470x_port_t* port,
   esp_err_t ret =
       i2c_master_cmd_begin(port->i2c.port, cmd, 1000 / portTICK_RATE_MS);
   i2c_cmd_link_delete(cmd);
+  if (port->i2c_mutex)
+    xSemaphoreGive(port->i2c_mutex);
   if (ret == ESP_OK)
     ESP_LOGV(TAG, "Successfully read %d bytes", size);
   else
@@ -113,6 +118,8 @@ static esp_err_t i2c_master_write_slave(struct si470x_port_t* port,
                                         size_t size) {
   ESP_LOGV(TAG, "reading %u bytes from slave 0x%x", size,
            port->i2c.params.slave_addr);
+  if (port->i2c_mutex)
+    xSemaphoreTake(port->i2c_mutex, portMAX_DELAY);
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
   i2c_master_write_byte(
@@ -123,6 +130,8 @@ static esp_err_t i2c_master_write_slave(struct si470x_port_t* port,
   esp_err_t ret =
       i2c_master_cmd_begin(port->i2c.port, cmd, 1000 / portTICK_RATE_MS);
   i2c_cmd_link_delete(cmd);
+  if (port->i2c_mutex)
+    xSemaphoreGive(port->i2c_mutex);
   return ret;
 }
 
@@ -201,20 +210,21 @@ static esp_err_t install_isr_service(struct si470x_port_t* port,
   return gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
 }
 
-struct si470x_port_t* port_create(bool noop) {
+struct si470x_port_t* port_create(const struct si470x_port_params_t* config) {
   assert(g_port == g_port);
 
   g_port = (struct si470x_port_t*)calloc(1, sizeof(struct si470x_port_t));
   if (g_port == NULL)
     return NULL;
 
-  g_port->noop = noop;
+  g_port->noop = config->noop;
+  g_port->i2c_mutex = config->i2c_mutex;
   g_port->i2c.conf.mode = I2C_MODE_MASTER;
   // Max of 1MHz recommended by:
   // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/i2c.html#_CPPv4N12i2c_config_t9clk_speedE
   g_port->i2c.conf.master.clk_speed = 100000;
-  g_port->i2c.conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-  g_port->i2c.conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+  g_port->i2c.conf.sda_pullup_en = GPIO_PULLUP_DISABLE;
+  g_port->i2c.conf.scl_pullup_en = GPIO_PULLUP_DISABLE;
   g_port->i2c.init_err = ESP_FAIL;
 
   ESP_LOGD(TAG, "Created port");

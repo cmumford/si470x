@@ -29,6 +29,8 @@
 #if defined(ESP_PLATFORM)
 #include <driver/gpio.h>  // To get gpio_num_t.
 #include <driver/i2c.h>   // To get i2c_port_t.
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 #endif
 
 #ifdef __cplusplus
@@ -59,6 +61,23 @@ typedef void (*InterruptHandler)(void* user_data);
 
 struct si470x_port_t;
 
+struct si470x_port_params_t {
+  /**
+   * Set to true for a no-op port, where all calls do nothing
+   * and never fail. This is for testing.
+   */
+  bool noop;
+
+#if defined(ESP_PLATFORM)
+  /**
+   * Mutex to synchronize reading/writing to I2C.
+   *
+   * Set to null to disable synchronization.
+   */
+  SemaphoreHandle_t i2c_mutex;
+#endif
+};
+
 /**
  * I2C configuration parameters for a Si470X device.
  *
@@ -75,10 +94,9 @@ struct si470x_i2c_params_t {
 /**
  * Create a port.
  *
- * @param noop Set to true for a no-op port, where all calls do nothing
- *             and never fail. This is for testing.
+ * @param config Port configuration parameters.
  */
-struct si470x_port_t* port_create(bool noop);
+struct si470x_port_t* port_create(const struct si470x_port_params_t* config);
 
 /**
  * Delete the port.
